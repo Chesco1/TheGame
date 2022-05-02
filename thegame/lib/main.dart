@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:thegame/pages/level_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -39,9 +40,24 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            ElevatedButton(
-              onPressed: () {},
-              child: const Text("Bier"),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const LevelPage()),
+                    );
+                  },
+                  child: const Text("Play"),
+                ),
+                ElevatedButton(
+                  onPressed: () {},
+                  child: const Text("Build"),
+                ),
+              ],
             ),
           ],
         ),
