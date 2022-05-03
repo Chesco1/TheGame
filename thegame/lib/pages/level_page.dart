@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:thegame/views/line_grid.dart';
+import 'package:thegame/views/track.dart';
 
 class LevelPage extends StatelessWidget {
   const LevelPage({Key? key}) : super(key: key);
@@ -11,7 +11,7 @@ class LevelPage extends StatelessWidget {
       body: Container(
         alignment: Alignment.center,
         color: Colors.yellow,
-        child: LineGrid(),
+        child: Track(),
       ),
     );
   }
