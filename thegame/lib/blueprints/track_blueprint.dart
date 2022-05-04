@@ -4,30 +4,30 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:thegame/blueprints/track_block_blueprint.dart';
 
-@immutable
-class TrackBlueprint {
-  TrackBlueprint();
+// @immutable
+// class TrackBlueprint {
+//   static const int blockTypes = 2;
+//   TrackBlueprint();
 
-  // All properties should be `final` on our class.
-  final trackBlockBlueprints = <TrackBlockBlueprint>[];
+//   // All properties should be `final` on our class.
+//   final trackBlockBlueprints = <TrackBlockBlueprint>[];
+// }
 
-  // Since Todo is immutable, we implement a method that allows cloning the
-  // Todo with slightly different content.
-
-}
-
-// The StateNotifier class that will be passed to our StateNotifierProvider.
-// This class should not expose state outside of its "state" property, which means
-// no public getters/properties!
 // The public methods on this class will be what allow the UI to modify the state.
-class TrackNotifier extends StateNotifier<List<TrackBlueprint>> {
+class TrackNotifier extends StateNotifier<List<TrackBlockBlueprint>> {
   // We initialize the list of todos to an empty list
-  TrackNotifier() : super([]);
+  TrackNotifier()
+      : super([
+          TrackBlockBlueprint(color: Colors.red),
+          TrackBlockBlueprint(color: Colors.blue),
+          TrackBlockBlueprint(color: Colors.purple),
+          TrackBlockBlueprint(color: Colors.green),
+        ]);
 }
 
 // Finally, we are using StateNotifierProvider to allow the UI to interact with
 // our TodosNotifier class.
-final todosProvider =
-    StateNotifierProvider<TrackNotifier, List<TrackBlueprint>>((ref) {
+final trackBlueprintProvider =
+    StateNotifierProvider<TrackNotifier, List<TrackBlockBlueprint>>((ref) {
   return TrackNotifier();
 });
