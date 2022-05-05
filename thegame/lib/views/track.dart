@@ -31,3 +31,14 @@ class Track extends ConsumerWidget {
     );
   }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+
+class TrackRow extends ConsumerWidget {
+  const TrackRow({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Container();
+  }
+}

@@ -18,3 +18,15 @@ class TrackBlock extends ConsumerWidget {
     );
   }
 }
+
+////////////////////////////////////////////////////////////////////////////////
+
+class SingleTrackPart extends ConsumerWidget {
+  final int index;
+  const SingleTrackPart({Key? key, required this.index}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Container();
+  }
+}
