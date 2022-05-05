@@ -3,18 +3,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:thegame/blueprints/track_blueprint.dart';
 
 class TrackBlock extends ConsumerWidget {
-  final int index;
+  final int trackBlockIndex;
+  final int columnIndex;
+  final int rowIndex;
+  final List<SingleTrackPartBlueprint> singlePartBlueprints;
 
-  const TrackBlock({Key? key, required this.index}) : super(key: key);
+  const TrackBlock({
+    Key? key,
+    required this.trackBlockIndex,
+    required this.columnIndex,
+    required this.rowIndex,
+    required this.singlePartBlueprints,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    Color? color =
-        ref.watch(trackBlueprintProvider.select((value) => value[index].color));
-
-    return AspectRatio(
-      aspectRatio: 1,
-      child: Container(color: color),
+    return Stack(
+      children: [],
     );
   }
 }
@@ -22,11 +27,24 @@ class TrackBlock extends ConsumerWidget {
 ////////////////////////////////////////////////////////////////////////////////
 
 class SingleTrackPart extends ConsumerWidget {
-  final int index;
-  const SingleTrackPart({Key? key, required this.index}) : super(key: key);
+  final int trackPartIndex;
+  final TrackPartType type;
+  final int typeIndex;
+  final TrackColor color;
+
+  const SingleTrackPart({
+    Key? key,
+    required this.trackPartIndex,
+    required this.type,
+    required this.typeIndex,
+    required this.color,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Container();
+    return AspectRatio(
+      aspectRatio: 1,
+      child: Container(),
+    );
   }
 }
