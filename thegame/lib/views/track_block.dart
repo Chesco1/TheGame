@@ -27,6 +27,7 @@ class TrackBlock extends ConsumerWidget {
 ////////////////////////////////////////////////////////////////////////////////
 
 class SingleTrackPart extends ConsumerWidget {
+  // int trackBlockIndex
   final int trackPartIndex;
   final TrackPartType type;
   final int typeIndex;
@@ -44,7 +45,36 @@ class SingleTrackPart extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return AspectRatio(
       aspectRatio: 1,
-      child: Container(),
+      child: ClipRRect(
+        child: Container(
+          alignment: Alignment.center,
+          child: CustomPaint(
+            size: Size.infinite,
+            painter: LinePainter(type, typeIndex, color),
+          ),
+        ),
+      ),
     );
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+class LinePainter extends CustomPainter {
+  const LinePainter(
+    TrackPartType type,
+    int typeIndex,
+    TrackColor color,
+  );
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // TODO: implement paint
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    // TODO: implement shouldRepaint
+    throw UnimplementedError();
   }
 }
