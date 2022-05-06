@@ -9,24 +9,12 @@ class Track extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+
+final trackBlueprint = ref.read(trackBlueprintProvider);
     return Column(
       children: [
-        Flexible(
-          child: Row(
-            children: [
-              Flexible(child: TrackBlock(index: 0)),
-              Flexible(child: TrackBlock(index: 1)),
-            ],
-          ),
-        ),
-        Flexible(
-          child: Row(
-            children: [
-              Flexible(child: TrackBlock(index: 2)),
-              Flexible(child: TrackBlock(index: 3)),
-            ],
-          ),
-        )
+        for (TrackBlockBlueprint blueprint in trackBlueprint.where((element) => element.columnIndex == 3.))
+        
       ],
     );
   }
