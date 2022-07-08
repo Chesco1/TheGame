@@ -9,14 +9,12 @@ class TrackBlock extends ConsumerWidget {
   final int trackBlockIndex;
   final int columnIndex;
   final int rowIndex;
-  final List<SingleTrackPartBlueprint> singlePartBlueprints;
 
   const TrackBlock({
     Key? key,
     required this.trackBlockIndex,
     required this.columnIndex,
     required this.rowIndex,
-    required this.singlePartBlueprints,
   }) : super(key: key);
 
   @override

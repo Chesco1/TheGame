@@ -7,14 +7,28 @@ import 'package:thegame/views/track_block.dart';
 class Track extends ConsumerWidget {
   const Track({Key? key}) : super(key: key);
 
+  int getTrackRowCount(List<TrackBlockBlueprint> trackBlueprint) {
+    int highest = 0;
+
+    for (TrackBlockBlueprint blueprint in trackBlueprint) {
+      if (blueprint.rowIndex >= highest) {
+        highest = blueprint.rowIndex + 1;
+      }
+    }
+    return highest;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-
-final trackBlueprint = ref.read(trackBlueprintProvider);
+    final trackBlueprint = ref.read(trackBlueprintProvider);
     return Column(
       children: [
-        for (TrackBlockBlueprint blueprint in trackBlueprint.where((element) => element.columnIndex == 3.))
-        
+        for (TrackBlockBlueprint blueprint in trackBlueprint)
+          Container(
+            alignment: Alignment.center,
+            height: 10,
+            color: Colors.blue,
+          ),
       ],
     );
   }
