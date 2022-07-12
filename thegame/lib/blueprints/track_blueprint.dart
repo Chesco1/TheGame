@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 enum TrackPartType { straight, weakCurve, strongCurve }
+
 enum TrackColor { none, red, green, blue }
 
 @immutable

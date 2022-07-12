@@ -6,21 +6,22 @@ import 'package:thegame/blueprints/track_blueprint.dart';
 
 class TrackBlock extends ConsumerWidget {
   static const int tapeWidth = 10; // should be a number between 0 and 100
-  final int trackBlockIndex;
   final int columnIndex;
   final int rowIndex;
 
   const TrackBlock({
     Key? key,
-    required this.trackBlockIndex,
     required this.columnIndex,
     required this.rowIndex,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Stack(
-      children: [],
+    return AspectRatio(
+      aspectRatio: 1,
+      child: Stack(
+        children: [],
+      ),
     );
   }
 }

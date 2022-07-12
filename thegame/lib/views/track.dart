@@ -7,7 +7,7 @@ import 'package:thegame/views/track_block.dart';
 class Track extends ConsumerWidget {
   const Track({Key? key}) : super(key: key);
 
-  int getTrackRowCount(List<TrackBlockBlueprint> trackBlueprint) {
+  static int getTrackRowCount(List<TrackBlockBlueprint> trackBlueprint) {
     int highest = 0;
 
     for (TrackBlockBlueprint blueprint in trackBlueprint) {
@@ -18,17 +18,25 @@ class Track extends ConsumerWidget {
     return highest;
   }
 
+  static int getTrackColumnCount(List<TrackBlockBlueprint> trackBlueprint) {
+    int highest = 0;
+
+    for (TrackBlockBlueprint blueprint in trackBlueprint) {
+      if (blueprint.columnIndex >= highest) {
+        highest = blueprint.columnIndex + 1;
+      }
+    }
+    return highest;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final trackBlueprint = ref.read(trackBlueprintProvider);
+    int totalRows = getTrackRowCount(trackBlueprint);
+
     return Column(
       children: [
-        for (TrackBlockBlueprint blueprint in trackBlueprint)
-          Container(
-            alignment: Alignment.center,
-            height: 10,
-            color: Colors.blue,
-          ),
+        for (int i = 0; i < totalRows; i++) TrackRow(rowIndex: i),
       ],
     );
   }
@@ -37,10 +45,23 @@ class Track extends ConsumerWidget {
 ///////////////////////////////////////////////////////////////////////////////
 
 class TrackRow extends ConsumerWidget {
-  const TrackRow({Key? key}) : super(key: key);
+  final int rowIndex;
+
+  const TrackRow({Key? key, required this.rowIndex}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Container();
+    final trackBlueprint = ref.read(trackBlueprintProvider);
+    int totalColumns = Track.getTrackColumnCount(trackBlueprint);
+
+    return Row(
+      children: [
+        for (int i = 0; i < totalColumns; i++)
+          TrackBlock(
+            columnIndex: i,
+            rowIndex: rowIndex,
+          )
+      ],
+    );
   }
 }
