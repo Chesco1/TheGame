@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_layout_grid/flutter_layout_grid.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:thegame/blueprints/track_blueprint.dart';
-import 'package:thegame/views/track_block.dart';
+import 'package:thegame/views/track_tile.dart';
 
 class Track extends ConsumerWidget {
   const Track({Key? key}) : super(key: key);
 
-  static int getTrackRowCount(List<TrackBlockBlueprint> trackBlueprint) {
+  static int getTrackRowCount(List<TrackTileBlueprint> trackBlueprint) {
     int highest = 0;
 
-    for (TrackBlockBlueprint blueprint in trackBlueprint) {
+    for (TrackTileBlueprint blueprint in trackBlueprint) {
       if (blueprint.rowIndex >= highest) {
         highest = blueprint.rowIndex + 1;
       }
@@ -18,10 +18,10 @@ class Track extends ConsumerWidget {
     return highest;
   }
 
-  static int getTrackColumnCount(List<TrackBlockBlueprint> trackBlueprint) {
+  static int getTrackColumnCount(List<TrackTileBlueprint> trackBlueprint) {
     int highest = 0;
 
-    for (TrackBlockBlueprint blueprint in trackBlueprint) {
+    for (TrackTileBlueprint blueprint in trackBlueprint) {
       if (blueprint.columnIndex >= highest) {
         highest = blueprint.columnIndex + 1;
       }
@@ -57,7 +57,7 @@ class TrackRow extends ConsumerWidget {
     return Row(
       children: [
         for (int i = 0; i < totalColumns; i++)
-          TrackBlock(
+          TrackTile(
             columnIndex: i,
             rowIndex: rowIndex,
           )

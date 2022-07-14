@@ -4,23 +4,56 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:thegame/blueprints/track_blueprint.dart';
 
-class TrackBlock extends ConsumerWidget {
+class TrackTile extends ConsumerWidget {
   static const int tapeWidth = 10; // should be a number between 0 and 100
   final int columnIndex;
   final int rowIndex;
 
-  const TrackBlock({
+  const TrackTile({
     Key? key,
     required this.columnIndex,
     required this.rowIndex,
   }) : super(key: key);
 
+  int getTrackTileIndexInBlueprintList(List<TrackTileBlueprint> blueprints) {
+    int i = 0;
+
+    for (var blueprint in blueprints) {
+      if (blueprint.columnIndex == columnIndex &&
+          blueprint.rowIndex == rowIndex) {
+        return i;
+      }
+      i++;
+    }
+    return -1; // should not happen
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    int trackTileIndexInBlueprintList = getTrackTileIndexInBlueprintList(
+      ref.read(trackBlueprintProvider),
+    );
+
+    final trackTileBlueprint = ref.watch(
+      trackBlueprintProvider.select(
+        (blueprints) => blueprints[trackTileIndexInBlueprintList],
+      ),
+    );
+
+    final singlePartBlueprints = trackTileBlueprint.singlePartBlueprints;
+
     return AspectRatio(
       aspectRatio: 1,
       child: Stack(
-        children: [],
+        children: [
+          for (int i = 0; i < singlePartBlueprints.length; i++)
+            SingleTrackPart(
+              trackPartIndex: i,
+              type: singlePartBlueprints[i].type,
+              typeIndex: singlePartBlueprints[i].typeIndex,
+              color: singlePartBlueprints[i].color,
+            )
+        ],
       ),
     );
   }
@@ -29,7 +62,6 @@ class TrackBlock extends ConsumerWidget {
 ////////////////////////////////////////////////////////////////////////////////
 
 class SingleTrackPart extends ConsumerWidget {
-  // int trackBlockIndex
   final int trackPartIndex;
   final TrackPartType type;
   final int typeIndex;
@@ -87,7 +119,7 @@ class LinePainter extends CustomPainter {
   Paint _makePaint(Size canvasSize) {
     return (Paint()
       ..color = _getPaintColor()
-      ..strokeWidth = (TrackBlock.tapeWidth / 100.0) * canvasSize.height
+      ..strokeWidth = (TrackTile.tapeWidth / 100.0) * canvasSize.height
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.square);
   }

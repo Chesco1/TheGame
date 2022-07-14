@@ -6,12 +6,12 @@ enum TrackPartType { straight, weakCurve, strongCurve }
 enum TrackColor { none, red, green, blue }
 
 @immutable
-class TrackBlockBlueprint {
+class TrackTileBlueprint {
   final int columnIndex;
   final int rowIndex;
   final List<SingleTrackPartBlueprint> singlePartBlueprints;
 
-  const TrackBlockBlueprint({
+  const TrackTileBlueprint({
     required this.columnIndex,
     required this.rowIndex,
     required this.singlePartBlueprints,
@@ -35,10 +35,10 @@ class SingleTrackPartBlueprint {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class TrackNotifier extends StateNotifier<List<TrackBlockBlueprint>> {
+class TrackNotifier extends StateNotifier<List<TrackTileBlueprint>> {
   TrackNotifier()
       : super([
-          const TrackBlockBlueprint(
+          const TrackTileBlueprint(
             columnIndex: 0,
             rowIndex: 0,
             singlePartBlueprints: [
@@ -49,7 +49,7 @@ class TrackNotifier extends StateNotifier<List<TrackBlockBlueprint>> {
               ),
             ],
           ),
-          const TrackBlockBlueprint(
+          const TrackTileBlueprint(
             columnIndex: 1,
             rowIndex: 0,
             singlePartBlueprints: [
@@ -60,7 +60,7 @@ class TrackNotifier extends StateNotifier<List<TrackBlockBlueprint>> {
               ),
             ],
           ),
-          const TrackBlockBlueprint(
+          const TrackTileBlueprint(
             columnIndex: 0,
             rowIndex: 1,
             singlePartBlueprints: [
@@ -71,7 +71,7 @@ class TrackNotifier extends StateNotifier<List<TrackBlockBlueprint>> {
               ),
             ],
           ),
-          const TrackBlockBlueprint(
+          const TrackTileBlueprint(
             columnIndex: 1,
             rowIndex: 1,
             singlePartBlueprints: [
@@ -88,6 +88,6 @@ class TrackNotifier extends StateNotifier<List<TrackBlockBlueprint>> {
 ////////////////////////////////////////////////////////////////////////////////
 
 final trackBlueprintProvider =
-    StateNotifierProvider<TrackNotifier, List<TrackBlockBlueprint>>((ref) {
+    StateNotifierProvider<TrackNotifier, List<TrackTileBlueprint>>((ref) {
   return TrackNotifier();
 });
