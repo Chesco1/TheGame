@@ -44,16 +44,19 @@ class TrackTile extends ConsumerWidget {
 
     return AspectRatio(
       aspectRatio: 1,
-      child: Stack(
-        children: [
-          for (int i = 0; i < singlePartBlueprints.length; i++)
-            SingleTrackPart(
-              trackPartIndex: i,
-              type: singlePartBlueprints[i].type,
-              typeIndex: singlePartBlueprints[i].typeIndex,
-              color: singlePartBlueprints[i].color,
-            )
-        ],
+      child: Container(
+        color: Colors.black12,
+        child: Stack(
+          children: [
+            for (int i = 0; i < singlePartBlueprints.length; i++)
+              SingleTrackPart(
+                trackPartIndex: i,
+                type: singlePartBlueprints[i].type,
+                typeIndex: singlePartBlueprints[i].typeIndex,
+                color: singlePartBlueprints[i].color,
+              )
+          ],
+        ),
       ),
     );
   }
@@ -72,7 +75,7 @@ class SingleTrackPart extends ConsumerWidget {
     required this.trackPartIndex,
     required this.type,
     required this.typeIndex,
-    required this.color,
+    this.color = TrackColor.none,
   }) : super(key: key);
 
   @override
@@ -151,14 +154,13 @@ class LinePainter extends CustomPainter {
     if (type == TrackPartType.straight) {
       _paintStraightLine(canvas, size, paint);
     } else if (type == TrackPartType.strongCurve) {
-      _paintStraightLine(canvas, size, paint);
+      _paintStrongCurve(canvas, size, paint);
     }
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    // TODO: implement shouldRepaint
-    throw UnimplementedError();
+    return false;
   }
 
   ///////////////////// Straight Lines /////////////////////////////////////////

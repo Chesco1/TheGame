@@ -54,8 +54,8 @@ class TrackNotifier extends StateNotifier<List<TrackTileBlueprint>> {
             rowIndex: 0,
             singlePartBlueprints: [
               SingleTrackPartBlueprint(
-                type: TrackPartType.straight,
-                typeIndex: 1,
+                type: TrackPartType.strongCurve,
+                typeIndex: 2,
                 color: TrackColor.red,
               ),
             ],
@@ -76,8 +76,8 @@ class TrackNotifier extends StateNotifier<List<TrackTileBlueprint>> {
             rowIndex: 1,
             singlePartBlueprints: [
               SingleTrackPartBlueprint(
-                type: TrackPartType.straight,
-                typeIndex: 1,
+                type: TrackPartType.strongCurve,
+                typeIndex: 3,
                 color: TrackColor.blue,
               ),
             ],

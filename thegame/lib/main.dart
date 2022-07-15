@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:thegame/pages/level_page.dart';
+import 'package:thegame/views/level_view.dart';
 
 void main() {
   runApp(ProviderScope(child: const MyApp()));
@@ -49,7 +49,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const LevelPage()),
+                          builder: (context) => const LevelView()),
                     );
                   },
                   child: const Text("Play"),

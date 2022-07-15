@@ -36,7 +36,10 @@ class Track extends ConsumerWidget {
 
     return Column(
       children: [
-        for (int i = 0; i < totalRows; i++) TrackRow(rowIndex: i),
+        for (int i = 0; i < totalRows; i++)
+          Flexible(
+            child: TrackRow(rowIndex: i),
+          ),
       ],
     );
   }
@@ -55,11 +58,14 @@ class TrackRow extends ConsumerWidget {
     int totalColumns = Track.getTrackColumnCount(trackBlueprint);
 
     return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         for (int i = 0; i < totalColumns; i++)
-          TrackTile(
-            columnIndex: i,
-            rowIndex: rowIndex,
+          Flexible(
+            child: TrackTile(
+              columnIndex: i,
+              rowIndex: rowIndex,
+            ),
           )
       ],
     );
