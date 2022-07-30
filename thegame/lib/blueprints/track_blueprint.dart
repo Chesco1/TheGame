@@ -83,6 +83,41 @@ class TrackNotifier extends StateNotifier<List<TrackTileBlueprint>> {
             ],
           ),
         ]);
+
+  int getTrackTileIndex(int columnIndex, int rowIndex) {
+    int i = 0;
+
+    for (var blueprint in state) {
+      if (blueprint.columnIndex == columnIndex &&
+          blueprint.rowIndex == rowIndex) {
+        return i;
+      }
+      i++;
+    }
+    return -1; // should not happen
+  }
+
+  int getTrackRowCount() {
+    int highest = 0;
+
+    for (TrackTileBlueprint blueprint in state) {
+      if (blueprint.rowIndex >= highest) {
+        highest = blueprint.rowIndex + 1;
+      }
+    }
+    return highest;
+  }
+
+  int getTrackColumnCount() {
+    int highest = 0;
+
+    for (TrackTileBlueprint blueprint in state) {
+      if (blueprint.columnIndex >= highest) {
+        highest = blueprint.columnIndex + 1;
+      }
+    }
+    return highest;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
