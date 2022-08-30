@@ -5,9 +5,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:thegame/blueprints/track_blueprint.dart';
 
 class Track extends ConsumerWidget {
-  static const int maxTrackWidth = 12;
+  static const int maxTrackTilesInRow = 12;
+  static const int trackWidth = 10; // should be a number between 0 and 100
 
-  const Track({Key? key}) : super(key: key);
+  final bool isLevelBuilder;
+
+  const Track({
+    Key? key,
+    required this.isLevelBuilder,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -15,10 +21,14 @@ class Track extends ConsumerWidget {
     int totalRows = trackBlueprint.getTrackRowCount();
 
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         for (int i = 0; i < totalRows; i++)
           Flexible(
-            child: _TrackRow(rowIndex: i),
+            child: _TrackRow(
+              isLevelBuilder: isLevelBuilder,
+              rowIndex: i,
+            ),
           ),
       ],
     );
@@ -29,9 +39,14 @@ class Track extends ConsumerWidget {
 
 /// This Widget is only to be used as a child of the Track widget
 class _TrackRow extends ConsumerWidget {
+  final bool isLevelBuilder;
   final int rowIndex;
 
-  const _TrackRow({Key? key, required this.rowIndex}) : super(key: key);
+  const _TrackRow({
+    Key? key,
+    required this.isLevelBuilder,
+    required this.rowIndex,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -43,10 +58,10 @@ class _TrackRow extends ConsumerWidget {
       children: [
         for (int i = 0; i < totalColumns; i++)
           Flexible(
-            child: _TrackTile(
+            child: _PositionedTrackTile(
               columnIndex: i,
               rowIndex: rowIndex,
-              isLevelBuilder: false,
+              isLevelBuilder: isLevelBuilder,
             ),
           )
       ],
@@ -56,14 +71,14 @@ class _TrackRow extends ConsumerWidget {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-/// This widget is only to be used as child of the TrackRow widget
-class _TrackTile extends ConsumerWidget {
-  static const int tapeWidth = 10; // should be a number between 0 and 100
+/// This widget is only to be used as child of the TrackRow widget where the
+/// track has to be specified with the [columnIndex] and [rowIndex] parameters
+class _PositionedTrackTile extends ConsumerWidget {
+  final bool isLevelBuilder;
   final int columnIndex;
   final int rowIndex;
-  final bool isLevelBuilder;
 
-  const _TrackTile({
+  const _PositionedTrackTile({
     Key? key,
     required this.columnIndex,
     required this.rowIndex,
@@ -186,7 +201,7 @@ class LinePainter extends CustomPainter {
   Paint _makePaint(Size canvasSize) {
     return (Paint()
       ..color = _getPaintColor()
-      ..strokeWidth = (_TrackTile.tapeWidth / 100.0) * canvasSize.height
+      ..strokeWidth = (Track.trackWidth / 100.0) * canvasSize.height
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.square);
   }

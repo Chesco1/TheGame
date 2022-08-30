@@ -21,7 +21,9 @@ class LevelView extends StatelessWidget {
           children: [
             Container(
               alignment: Alignment.center,
-              child: Track(),
+              child: Track(
+                isLevelBuilder: false,
+              ),
             ).inGridArea('track')
           ],
         ),

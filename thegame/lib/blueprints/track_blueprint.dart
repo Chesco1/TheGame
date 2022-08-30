@@ -23,6 +23,8 @@ class TrackTileBlueprint {
 @immutable
 class SingleTrackPartBlueprint {
   final TrackPartType type;
+
+  /// Specifies the exact trackPart from this [TrackPartType]
   final int typeIndex;
   final TrackColor color;
 
