@@ -1,84 +1,115 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-enum TrackPartType { straight, weakCurve, strongCurve }
+enum TrackTileType { straight, weakCurve, strongCurve }
 
 enum TrackColor { none, red, green, blue }
 
 @immutable
-class TrackTileBlueprint {
+class TrackTileStackBlueprint {
   final int columnIndex;
   final int rowIndex;
-  final List<SingleTrackPartBlueprint> singlePartBlueprints;
+  final List<SingleTrackTileBlueprint> singlePartBlueprints;
 
-  const TrackTileBlueprint({
+  const TrackTileStackBlueprint({
     required this.columnIndex,
     required this.rowIndex,
-    required this.singlePartBlueprints,
+    this.singlePartBlueprints = const [],
   });
+
+  TrackTileStackBlueprint copyWith(
+      {required int trackTileIndex,
+      TrackTileType? type,
+      int? typeIndex,
+      TrackColor? color}) {
+    return TrackTileStackBlueprint(
+      columnIndex: columnIndex,
+      rowIndex: rowIndex,
+      singlePartBlueprints: [
+        for (int i = 0; i < singlePartBlueprints.length; i++)
+          if (i == trackTileIndex)
+            singlePartBlueprints[i].copyWith(
+              type: type,
+              typeIndex: typeIndex,
+              color: color,
+            )
+          else
+            singlePartBlueprints[i],
+      ],
+    );
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 @immutable
-class SingleTrackPartBlueprint {
-  final TrackPartType type;
+class SingleTrackTileBlueprint {
+  final TrackTileType type;
 
-  /// Specifies the exact trackPart from this [TrackPartType]
+  /// Specifies the exact trackPart from this [TrackTileType]
   final int typeIndex;
   final TrackColor color;
 
-  const SingleTrackPartBlueprint({
+  const SingleTrackTileBlueprint({
     required this.type,
     required this.typeIndex,
     required this.color,
   });
+
+  SingleTrackTileBlueprint copyWith(
+      {TrackTileType? type, int? typeIndex, TrackColor? color}) {
+    return SingleTrackTileBlueprint(
+      type: type ?? this.type,
+      typeIndex: typeIndex ?? this.typeIndex,
+      color: color ?? this.color,
+    );
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class TrackNotifier extends StateNotifier<List<TrackTileBlueprint>> {
+class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
   TrackNotifier()
       : super([
-          const TrackTileBlueprint(
+          const TrackTileStackBlueprint(
             columnIndex: 0,
             rowIndex: 0,
             singlePartBlueprints: [
-              SingleTrackPartBlueprint(
-                type: TrackPartType.straight,
+              SingleTrackTileBlueprint(
+                type: TrackTileType.straight,
                 typeIndex: 0,
                 color: TrackColor.none,
               ),
             ],
           ),
-          const TrackTileBlueprint(
+          const TrackTileStackBlueprint(
             columnIndex: 1,
             rowIndex: 0,
             singlePartBlueprints: [
-              SingleTrackPartBlueprint(
-                type: TrackPartType.strongCurve,
+              SingleTrackTileBlueprint(
+                type: TrackTileType.strongCurve,
                 typeIndex: 2,
                 color: TrackColor.red,
               ),
             ],
           ),
-          const TrackTileBlueprint(
+          const TrackTileStackBlueprint(
             columnIndex: 0,
             rowIndex: 1,
             singlePartBlueprints: [
-              SingleTrackPartBlueprint(
-                type: TrackPartType.straight,
+              SingleTrackTileBlueprint(
+                type: TrackTileType.straight,
                 typeIndex: 0,
                 color: TrackColor.green,
               ),
             ],
           ),
-          const TrackTileBlueprint(
+          const TrackTileStackBlueprint(
             columnIndex: 1,
             rowIndex: 1,
             singlePartBlueprints: [
-              SingleTrackPartBlueprint(
-                type: TrackPartType.strongCurve,
+              SingleTrackTileBlueprint(
+                type: TrackTileType.strongCurve,
                 typeIndex: 3,
                 color: TrackColor.blue,
               ),
@@ -102,7 +133,7 @@ class TrackNotifier extends StateNotifier<List<TrackTileBlueprint>> {
   int getTrackRowCount() {
     int highest = 0;
 
-    for (TrackTileBlueprint blueprint in state) {
+    for (TrackTileStackBlueprint blueprint in state) {
       if (blueprint.rowIndex >= highest) {
         highest = blueprint.rowIndex + 1;
       }
@@ -113,18 +144,41 @@ class TrackNotifier extends StateNotifier<List<TrackTileBlueprint>> {
   int getTrackColumnCount() {
     int highest = 0;
 
-    for (TrackTileBlueprint blueprint in state) {
+    for (TrackTileStackBlueprint blueprint in state) {
       if (blueprint.columnIndex >= highest) {
         highest = blueprint.columnIndex + 1;
       }
     }
     return highest;
   }
+
+  void updateTrackTileStack({
+    required int columnIndex,
+    required int rowIndex,
+    required int trackTileIndex,
+    TrackTileType? newType,
+    int? newTypeIndex,
+    TrackColor? newColor,
+  }) {
+    state = [
+      for (final blueprint in state)
+        if (blueprint.columnIndex == columnIndex &&
+            blueprint.rowIndex == rowIndex)
+          blueprint.copyWith(
+            trackTileIndex: trackTileIndex,
+            type: newType,
+            typeIndex: newTypeIndex,
+            color: newColor,
+          )
+        else
+          blueprint,
+    ];
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 final trackBlueprintProvider =
-    StateNotifierProvider<TrackNotifier, List<TrackTileBlueprint>>((ref) {
+    StateNotifierProvider<TrackNotifier, List<TrackTileStackBlueprint>>((ref) {
   return TrackNotifier();
 });

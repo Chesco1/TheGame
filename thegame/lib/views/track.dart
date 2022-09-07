@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:thegame/blueprints/track_blueprint.dart';
+import 'package:thegame/levelbuilder_popupmenus/non_closing_popupmenuitem.dart';
+import 'package:thegame/levelbuilder_popupmenus/tracktile_popupmenu.dart';
 
 class Track extends ConsumerWidget {
   static const int maxTrackTilesInRow = 12;
@@ -58,7 +60,7 @@ class _TrackRow extends ConsumerWidget {
       children: [
         for (int i = 0; i < totalColumns; i++)
           Flexible(
-            child: _PositionedTrackTile(
+            child: _PositionedTrackTileStack(
               columnIndex: i,
               rowIndex: rowIndex,
               isLevelBuilder: isLevelBuilder,
@@ -72,48 +74,49 @@ class _TrackRow extends ConsumerWidget {
 ////////////////////////////////////////////////////////////////////////////////
 
 /// This widget is only to be used as child of the TrackRow widget where the
-/// track has to be specified with the [columnIndex] and [rowIndex] parameters
-class _PositionedTrackTile extends ConsumerWidget {
-  final bool isLevelBuilder;
+/// position is specified with the [columnIndex] and [rowIndex] parameters.
+/// The widget will use these to find the correct [TrackTileStackBlueprint]
+/// from the [TrackNotifier] and build accordingly.
+/// Not adhering to this may trigger a providerNotFoundException.
+class _PositionedTrackTileStack extends ConsumerWidget {
   final int columnIndex;
   final int rowIndex;
+  final bool isLevelBuilder;
 
-  const _PositionedTrackTile({
+  const _PositionedTrackTileStack({
     Key? key,
     required this.columnIndex,
     required this.rowIndex,
-    required this.isLevelBuilder,
+    this.isLevelBuilder = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    int trackTileIndex = ref
-        .watch(trackBlueprintProvider.notifier)
-        .getTrackTileIndex(columnIndex, rowIndex);
+    final trackNotifier = ref.watch(trackBlueprintProvider.notifier);
 
-    final trackTileBlueprint = ref.watch(
+    final trackTileStackBlueprint = ref.watch(
       trackBlueprintProvider.select(
-        (blueprints) => blueprints[trackTileIndex],
+        (blueprints) => blueprints[trackNotifier.getTrackTileIndex(
+          columnIndex,
+          rowIndex,
+        )],
       ),
     );
 
-    final singlePartBlueprints = trackTileBlueprint.singlePartBlueprints;
-
-    return AspectRatio(
-      aspectRatio: 1,
-      child: Container(
-        color: Colors.black12,
-        child: Stack(
-          children: [
-            for (int i = 0; i < singlePartBlueprints.length; i++)
-              SingleTrackPart(
-                trackPartIndex: i,
-                type: singlePartBlueprints[i].type,
-                typeIndex: singlePartBlueprints[i].typeIndex,
-                color: singlePartBlueprints[i].color,
-              )
-          ],
+    return PopupMenuButton(
+      itemBuilder: (context) => [
+        NonClosingPopupMenuItem(
+          child: Center(
+            child: TrackTilePopupMenu(
+              columnIndex: columnIndex,
+              rowIndex: rowIndex,
+            ),
+          ),
         ),
+      ],
+      child: TrackTileStack(
+        singleTrackTileBlueprints: trackTileStackBlueprint.singlePartBlueprints,
+        isLevelBuilder: isLevelBuilder,
       ),
     );
   }
@@ -121,52 +124,32 @@ class _PositionedTrackTile extends ConsumerWidget {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class TrackTileBackGround extends ConsumerWidget {
+class TrackTileStack extends ConsumerWidget {
+  final List<SingleTrackTileBlueprint> singleTrackTileBlueprints;
   final bool isLevelBuilder;
-  final Widget? child;
-  const TrackTileBackGround({
+  const TrackTileStack({
     Key? key,
-    required this.isLevelBuilder,
-    this.child,
+    this.singleTrackTileBlueprints = const [],
+    this.isLevelBuilder = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ClipRRect(
-      child: Container(
-        color: isLevelBuilder == true ? Colors.black26 : null,
-        child: child,
-      ),
-    );
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-class SingleTrackPart extends ConsumerWidget {
-  final int trackPartIndex;
-  final TrackPartType type;
-  final int typeIndex;
-  final TrackColor color;
-
-  const SingleTrackPart({
-    Key? key,
-    required this.trackPartIndex,
-    required this.type,
-    required this.typeIndex,
-    this.color = TrackColor.none,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return AspectRatio(
-      aspectRatio: 1,
-      child: ClipRRect(
+      child: AspectRatio(
+        aspectRatio: 1,
         child: Container(
-          alignment: Alignment.center,
-          child: CustomPaint(
-            size: Size.infinite,
-            painter: LinePainter(type, typeIndex, color),
+          color: isLevelBuilder == true ? Colors.black26 : null,
+          child: Stack(
+            children: [
+              for (int i = 0; i < singleTrackTileBlueprints.length; i++)
+                SingleTrackTile(
+                  trackTileIndex: i,
+                  type: singleTrackTileBlueprints[i].type,
+                  typeIndex: singleTrackTileBlueprints[i].typeIndex,
+                  color: singleTrackTileBlueprints[i].color,
+                ),
+            ],
           ),
         ),
       ),
@@ -176,8 +159,39 @@ class SingleTrackPart extends ConsumerWidget {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+class SingleTrackTile extends ConsumerWidget {
+  final int trackTileIndex;
+  final TrackTileType type;
+  final int typeIndex;
+  final TrackColor color;
+
+  const SingleTrackTile({
+    Key? key,
+    required this.trackTileIndex,
+    required this.type,
+    required this.typeIndex,
+    this.color = TrackColor.none,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return AspectRatio(
+      aspectRatio: 1,
+      child: Container(
+        alignment: Alignment.center,
+        child: CustomPaint(
+          size: Size.infinite,
+          painter: LinePainter(type, typeIndex, color),
+        ),
+      ),
+    );
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 class LinePainter extends CustomPainter {
-  final TrackPartType type;
+  final TrackTileType type;
   final int typeIndex;
   final TrackColor color;
 
@@ -229,17 +243,14 @@ class LinePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = _makePaint(size);
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
 
-    if (type == TrackPartType.straight) {
+    canvas.clipRect(rect);
+    if (type == TrackTileType.straight) {
       _paintStraightLine(canvas, size, paint);
-    } else if (type == TrackPartType.strongCurve) {
+    } else if (type == TrackTileType.strongCurve) {
       _paintStrongCurve(canvas, size, paint);
     }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
   }
 
   ///////////////////// Straight Lines /////////////////////////////////////////
@@ -297,4 +308,10 @@ class LinePainter extends CustomPainter {
     );
     canvas.drawArc(rect, 0.0, pi * 0.5, false, paint);
   }
+
+  @override
+  bool shouldRepaint(LinePainter oldDelegate) =>
+      oldDelegate.type != type ||
+      oldDelegate.typeIndex != typeIndex ||
+      oldDelegate.color != color;
 }
