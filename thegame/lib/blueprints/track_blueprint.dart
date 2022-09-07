@@ -3,7 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 enum TrackTileType { straight, weakCurve, strongCurve }
 
-enum TrackColor { none, red, green, blue }
+enum TrackColor {
+  none(Colors.black),
+  red(Colors.red),
+  green(Colors.green),
+  blue(Colors.blue);
+
+  final Color paintColor;
+  const TrackColor(this.paintColor);
+}
 
 @immutable
 class TrackTileStackBlueprint {

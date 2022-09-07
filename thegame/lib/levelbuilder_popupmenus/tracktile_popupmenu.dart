@@ -61,105 +61,34 @@ class _ColorPickRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final trackNotifier = ref.watch(trackBlueprintProvider.notifier);
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        Flexible(
-          child: AspectRatio(
-            aspectRatio: 1,
-            child: TextButton(
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.zero,
-              ),
-              onPressed: (() {
-                final trackNotifier =
-                    ref.watch(trackBlueprintProvider.notifier);
-
-                trackNotifier.updateTrackTileStack(
-                  columnIndex: columnIndex,
-                  rowIndex: rowIndex,
-                  trackTileIndex: 0,
-                  newColor: TrackColor.none,
-                );
-              }),
-              child: Container(
-                color: Colors.black,
-              ),
-            ),
-          ),
-        ),
-        Flexible(
-          child: AspectRatio(
-            aspectRatio: 1,
-            child: TextButton(
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.zero,
-              ),
-              onPressed: (() {
-                final trackNotifier =
-                    ref.watch(trackBlueprintProvider.notifier);
-
-                trackNotifier.updateTrackTileStack(
-                  columnIndex: columnIndex,
-                  rowIndex: rowIndex,
-                  trackTileIndex: 0,
-                  newColor: TrackColor.red,
-                );
-              }),
-              child: Container(
-                color: Colors.red,
+        for (final trackColor in TrackColor.values)
+          Flexible(
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: TextButton(
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                ),
+                onPressed: (() {
+                  trackNotifier.updateTrackTileStack(
+                    columnIndex: columnIndex,
+                    rowIndex: rowIndex,
+                    trackTileIndex: 0,
+                    newColor: trackColor,
+                  );
+                }),
+                child: Container(
+                  alignment: Alignment.center,
+                  color: trackColor.paintColor,
+                ),
               ),
             ),
           ),
-        ),
-        Flexible(
-          child: AspectRatio(
-            aspectRatio: 1,
-            child: TextButton(
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.zero,
-              ),
-              onPressed: (() {
-                final trackNotifier =
-                    ref.watch(trackBlueprintProvider.notifier);
-
-                trackNotifier.updateTrackTileStack(
-                  columnIndex: columnIndex,
-                  rowIndex: rowIndex,
-                  trackTileIndex: 0,
-                  newColor: TrackColor.green,
-                );
-              }),
-              child: Container(
-                color: Colors.green,
-              ),
-            ),
-          ),
-        ),
-        Flexible(
-          child: AspectRatio(
-            aspectRatio: 1,
-            child: TextButton(
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.zero,
-              ),
-              onPressed: (() {
-                final trackNotifier =
-                    ref.watch(trackBlueprintProvider.notifier);
-
-                trackNotifier.updateTrackTileStack(
-                  columnIndex: columnIndex,
-                  rowIndex: rowIndex,
-                  trackTileIndex: 0,
-                  newColor: TrackColor.blue,
-                );
-              }),
-              child: Container(
-                color: Colors.blue,
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }
