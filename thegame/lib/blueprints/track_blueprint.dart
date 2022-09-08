@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-enum TrackTileType { straight, weakCurve, strongCurve }
+enum TrackTileType {
+  straight(2),
+  weakCurve(0),
+  strongCurve(4);
+
+  final int tileAmount;
+  const TrackTileType(this.tileAmount);
+}
 
 enum TrackColor {
   none(Colors.black),

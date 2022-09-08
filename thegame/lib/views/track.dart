@@ -127,29 +127,35 @@ class _PositionedTrackTileStack extends ConsumerWidget {
 class TrackTileStack extends ConsumerWidget {
   final List<SingleTrackTileBlueprint> singleTrackTileBlueprints;
   final bool isLevelBuilder;
+  final double? size;
   const TrackTileStack({
     Key? key,
     this.singleTrackTileBlueprints = const [],
     this.isLevelBuilder = false,
+    this.size,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ClipRRect(
-      child: AspectRatio(
-        aspectRatio: 1,
-        child: Container(
-          color: isLevelBuilder == true ? Colors.black26 : null,
-          child: Stack(
-            children: [
-              for (int i = 0; i < singleTrackTileBlueprints.length; i++)
-                SingleTrackTile(
-                  trackTileIndex: i,
-                  type: singleTrackTileBlueprints[i].type,
-                  typeIndex: singleTrackTileBlueprints[i].typeIndex,
-                  color: singleTrackTileBlueprints[i].color,
-                ),
-            ],
+    return SizedBox(
+      height: size,
+      child: ClipRRect(
+        child: AspectRatio(
+          aspectRatio: 1,
+          child: Container(
+            color: isLevelBuilder == true ? Colors.black26 : null,
+            child: Stack(
+              children: [
+                for (int i = 0; i < singleTrackTileBlueprints.length; i++)
+                  SingleTrackTile(
+                    trackTileIndex: i,
+                    type: singleTrackTileBlueprints[i].type,
+                    typeIndex: singleTrackTileBlueprints[i].typeIndex,
+                    color: singleTrackTileBlueprints[i].color,
+                    size: size,
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -164,6 +170,7 @@ class SingleTrackTile extends ConsumerWidget {
   final TrackTileType type;
   final int typeIndex;
   final TrackColor color;
+  final double? size;
 
   const SingleTrackTile({
     Key? key,
@@ -171,14 +178,15 @@ class SingleTrackTile extends ConsumerWidget {
     required this.type,
     required this.typeIndex,
     this.color = TrackColor.none,
+    this.size,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return AspectRatio(
-      aspectRatio: 1,
-      child: Container(
-        alignment: Alignment.center,
+    return SizedBox(
+      height: size,
+      child: AspectRatio(
+        aspectRatio: 1,
         child: CustomPaint(
           size: Size.infinite,
           painter: LinePainter(type, typeIndex, color),

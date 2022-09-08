@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:thegame/blueprints/track_blueprint.dart';
+import 'package:thegame/views/track.dart';
 
 class TrackTilePopupMenu extends ConsumerStatefulWidget {
   final int columnIndex;
@@ -41,6 +42,7 @@ class _TrackTilePopupMenuState extends ConsumerState<TrackTilePopupMenu> {
             columnIndex: widget.columnIndex,
             rowIndex: widget.rowIndex,
           ),
+          _TrackTileWrap(),
         ],
       ),
     );
@@ -90,6 +92,43 @@ class _ColorPickRow extends ConsumerWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+class _TrackTileWrap extends ConsumerWidget {
+  final int tilesPerRow = 4;
+  final double spaceBetweenTiles = 6;
+
+  const _TrackTileWrap({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Wrap(
+          spacing: spaceBetweenTiles,
+          runSpacing: spaceBetweenTiles,
+          children: [
+            for (final type in TrackTileType.values)
+              for (int i = 0; i < type.tileAmount; i++)
+                TrackTileStack(
+                  size: (constraints.maxWidth -
+                          (tilesPerRow - 1) * spaceBetweenTiles) /
+                      tilesPerRow,
+                  singleTrackTileBlueprints: [
+                    SingleTrackTileBlueprint(
+                      type: type,
+                      typeIndex: i,
+                      color: TrackColor.none,
+                    ),
+                  ],
+                ),
+          ],
+        );
+      },
     );
   }
 }
