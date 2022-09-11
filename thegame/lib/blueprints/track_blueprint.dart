@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:thegame/train/train_info.dart';
 
 enum TrackTileType {
   straight(2),
@@ -32,21 +33,24 @@ class TrackTileStackBlueprint {
     this.singlePartBlueprints = const [],
   });
 
-  TrackTileStackBlueprint copyWith(
-      {required int trackTileIndex,
-      TrackTileType? type,
-      int? typeIndex,
-      TrackColor? color}) {
+  TrackTileStackBlueprint copyWith({
+    int? newColumnIndex,
+    int? newRowIndex,
+    int? trackTileIndexToEdit,
+    TrackTileType? newType,
+    int? newTypeIndex,
+    TrackColor? newColor,
+  }) {
     return TrackTileStackBlueprint(
-      columnIndex: columnIndex,
-      rowIndex: rowIndex,
+      columnIndex: newColumnIndex ?? columnIndex,
+      rowIndex: newRowIndex ?? rowIndex,
       singlePartBlueprints: [
         for (int i = 0; i < singlePartBlueprints.length; i++)
-          if (i == trackTileIndex)
+          if (i == trackTileIndexToEdit)
             singlePartBlueprints[i].copyWith(
-              type: type,
-              typeIndex: typeIndex,
-              color: color,
+              newType: newType,
+              newTypeIndex: newTypeIndex,
+              newColor: newColor,
             )
           else
             singlePartBlueprints[i],
@@ -71,12 +75,15 @@ class SingleTrackTileBlueprint {
     required this.color,
   });
 
-  SingleTrackTileBlueprint copyWith(
-      {TrackTileType? type, int? typeIndex, TrackColor? color}) {
+  SingleTrackTileBlueprint copyWith({
+    TrackTileType? newType,
+    int? newTypeIndex,
+    TrackColor? newColor,
+  }) {
     return SingleTrackTileBlueprint(
-      type: type ?? this.type,
-      typeIndex: typeIndex ?? this.typeIndex,
-      color: color ?? this.color,
+      type: newType ?? type,
+      typeIndex: newTypeIndex ?? typeIndex,
+      color: newColor ?? color,
     );
   }
 }
@@ -180,14 +187,103 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
         if (blueprint.columnIndex == columnIndex &&
             blueprint.rowIndex == rowIndex)
           blueprint.copyWith(
-            trackTileIndex: trackTileIndex,
-            type: newType,
-            typeIndex: newTypeIndex,
-            color: newColor,
+            trackTileIndexToEdit: trackTileIndex,
+            newType: newType,
+            newTypeIndex: newTypeIndex,
+            newColor: newColor,
           )
         else
           blueprint,
     ];
+  }
+
+  void addTrackRow(Direction direction) {
+    int currentRowCount = getTrackRowCount();
+    if (direction == Direction.down) {
+      state = [
+        ...state,
+        for (int i = 0; i < getTrackColumnCount(); i++)
+          TrackTileStackBlueprint(
+            columnIndex: i,
+            rowIndex: currentRowCount,
+          )
+      ];
+    } else {
+      state = [
+        for (final blueprint in state)
+          blueprint.copyWith(
+            newRowIndex: blueprint.rowIndex + 1,
+          ),
+        for (int i = 0; i < getTrackColumnCount(); i++)
+          TrackTileStackBlueprint(
+            columnIndex: i,
+            rowIndex: 0,
+          )
+      ];
+    }
+  }
+
+  void removeTrackRow(Direction direction) {
+    int currentRowCount = getTrackRowCount();
+
+    if (direction == Direction.down) {
+      state = [
+        for (final blueprint in state
+            .where((blueprint) => blueprint.rowIndex < currentRowCount - 1))
+          blueprint,
+      ];
+    } else {
+      state = [
+        for (final blueprint
+            in state.where((blueprint) => blueprint.rowIndex > 0))
+          blueprint.copyWith(newRowIndex: blueprint.rowIndex - 1),
+      ];
+    }
+  }
+
+  void addTrackColumn(Direction direction) {
+    int currentColumnCount = getTrackColumnCount();
+
+    if (direction == Direction.right) {
+      state = [
+        ...state,
+        for (int i = 0; i < getTrackRowCount(); i++)
+          TrackTileStackBlueprint(
+            columnIndex: currentColumnCount,
+            rowIndex: i,
+          )
+      ];
+    } else {
+      state = [
+        for (final blueprint in state)
+          blueprint.copyWith(
+            newColumnIndex: blueprint.columnIndex + 1,
+          ),
+        for (int i = 0; i < getTrackRowCount(); i++)
+          TrackTileStackBlueprint(
+            columnIndex: 0,
+            rowIndex: i,
+          )
+      ];
+    }
+  }
+
+  void removeTrackColumn(Direction direction) {
+    int currentColumnCount = getTrackColumnCount();
+
+    if (direction == Direction.right) {
+      state = [
+        for (final blueprint in state.where(
+            (blueprint) => blueprint.columnIndex < currentColumnCount - 1))
+          blueprint,
+      ];
+    } else {
+      state = [
+        for (final blueprint
+            in state.where((blueprint) => blueprint.columnIndex > 0))
+          blueprint.copyWith(newColumnIndex: blueprint.columnIndex - 1),
+      ];
+    }
   }
 }
 

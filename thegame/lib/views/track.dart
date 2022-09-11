@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:thegame/blueprints/track_blueprint.dart';
 import 'package:thegame/levelbuilder_popupmenus/non_closing_popupmenuitem.dart';
 import 'package:thegame/levelbuilder_popupmenus/tracktile_popupmenu.dart';
+import 'package:thegame/train/train_info.dart';
 
 class Track extends ConsumerWidget {
   static const int maxTrackTilesInRow = 12;
@@ -22,9 +23,11 @@ class Track extends ConsumerWidget {
     final trackBlueprint = ref.watch(trackBlueprintProvider.notifier);
     int totalRows = trackBlueprint.getTrackRowCount();
 
+    ref.watch(trackBlueprintProvider.select((value) => value.length));
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        _TrackRowController(direction: Direction.up),
         for (int i = 0; i < totalRows; i++)
           Flexible(
             child: _TrackRow(
@@ -32,6 +35,63 @@ class Track extends ConsumerWidget {
               rowIndex: i,
             ),
           ),
+      ],
+    );
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+class _TrackRowController extends ConsumerWidget {
+  final Direction direction;
+
+  const _TrackRowController({
+    Key? key,
+    required this.direction,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final trackNotifier = ref.watch(trackBlueprintProvider.notifier);
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SizedBox(
+          height: MediaQuery.of(context).size.shortestSide / 12,
+          child: AspectRatio(
+            aspectRatio: 1.62,
+            child: TextButton(
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: Size.zero,
+                backgroundColor: Colors.grey,
+              ),
+              onPressed: () {
+                trackNotifier.removeTrackRow(Direction.up);
+              },
+              child: Icon(Icons.remove),
+            ),
+          ),
+        ),
+        SizedBox(width: 5),
+        SizedBox(
+          height: MediaQuery.of(context).size.shortestSide / 12,
+          child: AspectRatio(
+            aspectRatio: 1.62,
+            child: TextButton(
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: Size.zero,
+                backgroundColor: Colors.grey,
+              ),
+              onPressed: () {
+                trackNotifier.addTrackRow(Direction.up);
+              },
+              child: Icon(Icons.add),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -52,8 +112,8 @@ class _TrackRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final trackBlueprint = ref.watch(trackBlueprintProvider.notifier);
-    int totalColumns = trackBlueprint.getTrackColumnCount();
+    final trackNotifier = ref.watch(trackBlueprintProvider.notifier);
+    int totalColumns = trackNotifier.getTrackColumnCount();
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -104,6 +164,7 @@ class _PositionedTrackTileStack extends ConsumerWidget {
     );
 
     return PopupMenuButton(
+      enabled: isLevelBuilder,
       itemBuilder: (context) => [
         NonClosingPopupMenuItem(
           child: Center(
@@ -143,7 +204,8 @@ class TrackTileStack extends ConsumerWidget {
         child: AspectRatio(
           aspectRatio: 1,
           child: Container(
-            color: isLevelBuilder == true ? Colors.black26 : null,
+            margin: isLevelBuilder ? const EdgeInsets.all(0.5) : null,
+            color: isLevelBuilder ? Colors.black12 : null,
             child: Stack(
               children: [
                 for (int i = 0; i < singleTrackTileBlueprints.length; i++)

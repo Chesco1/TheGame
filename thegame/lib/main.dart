@@ -59,7 +59,16 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: const Text("Play"),
                 ),
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LevelView(
+                          isLevelBuilder: true,
+                        ),
+                      ),
+                    );
+                  },
                   child: const Text("Build"),
                 ),
               ],

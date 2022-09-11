@@ -42,7 +42,10 @@ class _TrackTilePopupMenuState extends ConsumerState<TrackTilePopupMenu> {
             columnIndex: widget.columnIndex,
             rowIndex: widget.rowIndex,
           ),
-          _TrackTileWrap(),
+          _TrackTileWrap(
+            columnIndex: widget.columnIndex,
+            rowIndex: widget.rowIndex,
+          ),
         ],
       ),
     );
@@ -66,12 +69,11 @@ class _ColorPickRow extends ConsumerWidget {
     final trackNotifier = ref.watch(trackBlueprintProvider.notifier);
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         for (final trackColor in TrackColor.values)
           Flexible(
             child: AspectRatio(
-              aspectRatio: 1,
+              aspectRatio: 1.62,
               child: TextButton(
                 style: TextButton.styleFrom(
                   padding: EdgeInsets.zero,
@@ -85,7 +87,6 @@ class _ColorPickRow extends ConsumerWidget {
                   );
                 }),
                 child: Container(
-                  alignment: Alignment.center,
                   color: trackColor.paintColor,
                 ),
               ),
@@ -100,12 +101,29 @@ class _ColorPickRow extends ConsumerWidget {
 
 class _TrackTileWrap extends ConsumerWidget {
   final int tilesPerRow = 4;
-  final double spaceBetweenTiles = 6;
+  final double spaceBetweenTiles = 5;
 
-  const _TrackTileWrap({Key? key}) : super(key: key);
+  final int columnIndex;
+  final int rowIndex;
+  const _TrackTileWrap({
+    Key? key,
+    required this.columnIndex,
+    required this.rowIndex,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final trackNotifier = ref.watch(trackBlueprintProvider.notifier);
+
+    final trackTileStackBlueprint = ref.watch(
+      trackBlueprintProvider.select(
+        (blueprints) => blueprints[trackNotifier.getTrackTileIndex(
+          columnIndex,
+          rowIndex,
+        )],
+      ),
+    );
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return Wrap(
@@ -114,17 +132,34 @@ class _TrackTileWrap extends ConsumerWidget {
           children: [
             for (final type in TrackTileType.values)
               for (int i = 0; i < type.tileAmount; i++)
-                TrackTileStack(
-                  size: (constraints.maxWidth -
-                          (tilesPerRow - 1) * spaceBetweenTiles) /
-                      tilesPerRow,
-                  singleTrackTileBlueprints: [
-                    SingleTrackTileBlueprint(
-                      type: type,
-                      typeIndex: i,
-                      color: TrackColor.none,
-                    ),
-                  ],
+                TextButton(
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                  ),
+                  onPressed: (() {
+                    trackNotifier.updateTrackTileStack(
+                      columnIndex: columnIndex,
+                      rowIndex: rowIndex,
+                      trackTileIndex: 0,
+                      newType: type,
+                      newTypeIndex: i,
+                    );
+                  }),
+                  child: TrackTileStack(
+                    isLevelBuilder: true,
+                    size: (constraints.maxWidth -
+                            (tilesPerRow - 1) * spaceBetweenTiles) /
+                        tilesPerRow,
+                    singleTrackTileBlueprints: [
+                      SingleTrackTileBlueprint(
+                        type: type,
+                        typeIndex: i,
+                        color: trackTileStackBlueprint
+                            .singlePartBlueprints.first.color,
+                      ),
+                    ],
+                  ),
                 ),
           ],
         );
