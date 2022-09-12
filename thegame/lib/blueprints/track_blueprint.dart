@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:thegame/train/train_info.dart';
 
 enum TrackTileType {
+  none(0),
   straight(2),
   weakCurve(0),
   strongCurve(4);
@@ -30,7 +31,9 @@ class TrackTileStackBlueprint {
   const TrackTileStackBlueprint({
     required this.columnIndex,
     required this.rowIndex,
-    this.singlePartBlueprints = const [],
+    this.singlePartBlueprints = const [
+      SingleTrackTileBlueprint(),
+    ],
   });
 
   TrackTileStackBlueprint copyWith({
@@ -70,9 +73,9 @@ class SingleTrackTileBlueprint {
   final TrackColor color;
 
   const SingleTrackTileBlueprint({
-    required this.type,
-    required this.typeIndex,
-    required this.color,
+    this.type = TrackTileType.none,
+    this.typeIndex = 0,
+    this.color = TrackColor.none,
   });
 
   SingleTrackTileBlueprint copyWith({
@@ -218,7 +221,7 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
           TrackTileStackBlueprint(
             columnIndex: i,
             rowIndex: 0,
-          )
+          ),
       ];
     }
   }
@@ -226,18 +229,20 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
   void removeTrackRow(Direction direction) {
     int currentRowCount = getTrackRowCount();
 
-    if (direction == Direction.down) {
-      state = [
-        for (final blueprint in state
-            .where((blueprint) => blueprint.rowIndex < currentRowCount - 1))
-          blueprint,
-      ];
-    } else {
-      state = [
-        for (final blueprint
-            in state.where((blueprint) => blueprint.rowIndex > 0))
-          blueprint.copyWith(newRowIndex: blueprint.rowIndex - 1),
-      ];
+    if (currentRowCount > 1) {
+      if (direction == Direction.down) {
+        state = [
+          for (final blueprint in state
+              .where((blueprint) => blueprint.rowIndex < currentRowCount - 1))
+            blueprint,
+        ];
+      } else {
+        state = [
+          for (final blueprint
+              in state.where((blueprint) => blueprint.rowIndex > 0))
+            blueprint.copyWith(newRowIndex: blueprint.rowIndex - 1),
+        ];
+      }
     }
   }
 
@@ -271,18 +276,20 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
   void removeTrackColumn(Direction direction) {
     int currentColumnCount = getTrackColumnCount();
 
-    if (direction == Direction.right) {
-      state = [
-        for (final blueprint in state.where(
-            (blueprint) => blueprint.columnIndex < currentColumnCount - 1))
-          blueprint,
-      ];
-    } else {
-      state = [
-        for (final blueprint
-            in state.where((blueprint) => blueprint.columnIndex > 0))
-          blueprint.copyWith(newColumnIndex: blueprint.columnIndex - 1),
-      ];
+    if (currentColumnCount > 1) {
+      if (direction == Direction.right) {
+        state = [
+          for (final blueprint in state.where(
+              (blueprint) => blueprint.columnIndex < currentColumnCount - 1))
+            blueprint,
+        ];
+      } else {
+        state = [
+          for (final blueprint
+              in state.where((blueprint) => blueprint.columnIndex > 0))
+            blueprint.copyWith(newColumnIndex: blueprint.columnIndex - 1),
+        ];
+      }
     }
   }
 }

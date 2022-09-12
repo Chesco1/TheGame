@@ -9,7 +9,7 @@ import 'package:thegame/train/train_info.dart';
 
 class Track extends ConsumerWidget {
   static const int maxTrackTilesInRow = 12;
-  static const int trackWidth = 10; // should be a number between 0 and 100
+  static const int trackWidth = 11; // should be a number between 0 and 100
 
   final bool isLevelBuilder;
 
@@ -24,23 +24,38 @@ class Track extends ConsumerWidget {
     int totalRows = trackBlueprint.getTrackRowCount();
 
     ref.watch(trackBlueprintProvider.select((value) => value.length));
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _TrackRowController(direction: Direction.up),
-        for (int i = 0; i < totalRows; i++)
+    return Container(
+      alignment: Alignment.center,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const _TrackColumnController(direction: Direction.left),
           Flexible(
-            child: _TrackRow(
-              isLevelBuilder: isLevelBuilder,
-              rowIndex: i,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const _TrackRowController(direction: Direction.up),
+                for (int i = 0; i < totalRows; i++)
+                  Flexible(
+                    child: _TrackRow(
+                      isLevelBuilder: isLevelBuilder,
+                      rowIndex: i,
+                    ),
+                  ),
+                const _TrackRowController(direction: Direction.down),
+              ],
             ),
           ),
-      ],
+          const _TrackColumnController(direction: Direction.right),
+        ],
+      ),
     );
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+
+enum TrackControllerAction { add, remove }
 
 class _TrackRowController extends ConsumerWidget {
   final Direction direction;
@@ -50,47 +65,112 @@ class _TrackRowController extends ConsumerWidget {
     required this.direction,
   }) : super(key: key);
 
+  Widget _trackRowControllerButton(
+    BuildContext context,
+    TrackNotifier trackNotifier,
+    TrackControllerAction action,
+  ) {
+    return SizedBox(
+      height: MediaQuery.of(context).size.shortestSide / 13,
+      child: AspectRatio(
+        aspectRatio: 1.62,
+        child: TextButton(
+          style: TextButton.styleFrom(
+            padding: EdgeInsets.zero,
+            minimumSize: Size.zero,
+            backgroundColor: Colors.grey,
+          ),
+          onPressed: () {
+            action == TrackControllerAction.remove
+                ? trackNotifier.removeTrackRow(direction)
+                : trackNotifier.addTrackRow(direction);
+          },
+          child: Icon(action == TrackControllerAction.remove
+              ? Icons.remove
+              : Icons.add),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final trackNotifier = ref.watch(trackBlueprintProvider.notifier);
 
     return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _trackRowControllerButton(
+          context,
+          trackNotifier,
+          TrackControllerAction.remove,
+        ),
+        SizedBox(width: 8),
+        _trackRowControllerButton(
+          context,
+          trackNotifier,
+          TrackControllerAction.add,
+        ),
+      ],
+    );
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+class _TrackColumnController extends ConsumerWidget {
+  final Direction direction;
+
+  const _TrackColumnController({
+    Key? key,
+    required this.direction,
+  }) : super(key: key);
+
+  Widget _trackColumnControllerButton(
+    BuildContext context,
+    TrackNotifier trackNotifier,
+    TrackControllerAction action,
+  ) {
+    return SizedBox(
+      width: MediaQuery.of(context).size.shortestSide / 13,
+      child: AspectRatio(
+        aspectRatio: 0.62,
+        child: TextButton(
+          style: TextButton.styleFrom(
+            padding: EdgeInsets.zero,
+            minimumSize: Size.zero,
+            backgroundColor: Colors.grey,
+          ),
+          onPressed: () {
+            action == TrackControllerAction.remove
+                ? trackNotifier.removeTrackColumn(direction)
+                : trackNotifier.addTrackColumn(direction);
+          },
+          child: Icon(action == TrackControllerAction.remove
+              ? Icons.remove
+              : Icons.add),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final trackNotifier = ref.watch(trackBlueprintProvider.notifier);
+
+    return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        SizedBox(
-          height: MediaQuery.of(context).size.shortestSide / 12,
-          child: AspectRatio(
-            aspectRatio: 1.62,
-            child: TextButton(
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.zero,
-                minimumSize: Size.zero,
-                backgroundColor: Colors.grey,
-              ),
-              onPressed: () {
-                trackNotifier.removeTrackRow(Direction.up);
-              },
-              child: Icon(Icons.remove),
-            ),
-          ),
+        _trackColumnControllerButton(
+          context,
+          trackNotifier,
+          TrackControllerAction.remove,
         ),
-        SizedBox(width: 5),
-        SizedBox(
-          height: MediaQuery.of(context).size.shortestSide / 12,
-          child: AspectRatio(
-            aspectRatio: 1.62,
-            child: TextButton(
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.zero,
-                minimumSize: Size.zero,
-                backgroundColor: Colors.grey,
-              ),
-              onPressed: () {
-                trackNotifier.addTrackRow(Direction.up);
-              },
-              child: Icon(Icons.add),
-            ),
-          ),
+        SizedBox(height: 8),
+        _trackColumnControllerButton(
+          context,
+          trackNotifier,
+          TrackControllerAction.add,
         ),
       ],
     );
@@ -116,6 +196,7 @@ class _TrackRow extends ConsumerWidget {
     int totalColumns = trackNotifier.getTrackColumnCount();
 
     return Row(
+      mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         for (int i = 0; i < totalColumns; i++)
@@ -154,32 +235,38 @@ class _PositionedTrackTileStack extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final trackNotifier = ref.watch(trackBlueprintProvider.notifier);
 
-    final trackTileStackBlueprint = ref.watch(
-      trackBlueprintProvider.select(
-        (blueprints) => blueprints[trackNotifier.getTrackTileIndex(
+    final trackTileStackBlueprint = ref.watch(trackBlueprintProvider.select(
+      (blueprints) {
+        int index = trackNotifier.getTrackTileIndex(
           columnIndex,
           rowIndex,
-        )],
-      ),
-    );
+        );
+        return !index.isNegative ? blueprints[index] : null;
+      },
+    ));
 
-    return PopupMenuButton(
-      enabled: isLevelBuilder,
-      itemBuilder: (context) => [
-        NonClosingPopupMenuItem(
-          child: Center(
-            child: TrackTilePopupMenu(
-              columnIndex: columnIndex,
-              rowIndex: rowIndex,
+    if (trackTileStackBlueprint != null) {
+      return PopupMenuButton(
+        enabled: isLevelBuilder,
+        itemBuilder: (context) => [
+          NonClosingPopupMenuItem(
+            child: Center(
+              child: TrackTilePopupMenu(
+                columnIndex: columnIndex,
+                rowIndex: rowIndex,
+              ),
             ),
           ),
+        ],
+        child: TrackTileStack(
+          singleTrackTileBlueprints:
+              trackTileStackBlueprint.singlePartBlueprints,
+          isLevelBuilder: isLevelBuilder,
         ),
-      ],
-      child: TrackTileStack(
-        singleTrackTileBlueprints: trackTileStackBlueprint.singlePartBlueprints,
-        isLevelBuilder: isLevelBuilder,
-      ),
-    );
+      );
+    } else {
+      return Container();
+    }
   }
 }
 

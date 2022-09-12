@@ -45,6 +45,7 @@ class _TrackTilePopupMenuState extends ConsumerState<TrackTilePopupMenu> {
           _TrackTileWrap(
             columnIndex: widget.columnIndex,
             rowIndex: widget.rowIndex,
+            trackTileIndex: 0,
           ),
         ],
       ),
@@ -105,10 +106,12 @@ class _TrackTileWrap extends ConsumerWidget {
 
   final int columnIndex;
   final int rowIndex;
+  final int trackTileIndex;
   const _TrackTileWrap({
     Key? key,
     required this.columnIndex,
     required this.rowIndex,
+    required this.trackTileIndex,
   }) : super(key: key);
 
   @override
@@ -123,7 +126,6 @@ class _TrackTileWrap extends ConsumerWidget {
         )],
       ),
     );
-
     return LayoutBuilder(
       builder: (context, constraints) {
         return Wrap(
@@ -156,7 +158,11 @@ class _TrackTileWrap extends ConsumerWidget {
                         type: type,
                         typeIndex: i,
                         color: trackTileStackBlueprint
-                            .singlePartBlueprints.first.color,
+                                    .singlePartBlueprints.length >
+                                trackTileIndex
+                            ? trackTileStackBlueprint
+                                .singlePartBlueprints[trackTileIndex].color
+                            : TrackColor.none,
                       ),
                     ],
                   ),
