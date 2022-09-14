@@ -22,6 +22,44 @@ enum TrackColor {
   const TrackColor(this.paintColor);
 }
 
+enum Direction {
+  top(0),
+  topRight(1),
+  right(2),
+  bottomRight(3),
+  bottom(4),
+  bottomLeft(5),
+  left(6),
+  topLeft(7);
+
+  final int eighthTurnsFromTop;
+
+  const Direction(this.eighthTurnsFromTop);
+
+  static Direction? getFromEighthTurnsFromTop(int eighthTurns) {
+    switch (eighthTurns % 8) {
+      case 0:
+        return Direction.top;
+      case 1:
+        return Direction.topRight;
+      case 2:
+        return Direction.right;
+      case 3:
+        return Direction.bottomRight;
+      case 4:
+        return Direction.bottom;
+      case 5:
+        return Direction.bottomLeft;
+      case 6:
+        return Direction.left;
+      case 7:
+        return Direction.topLeft;
+      default:
+        return null; // should not be possible
+    }
+  }
+}
+
 @immutable
 class TrackTileStackBlueprint {
   final int columnIndex;
@@ -41,7 +79,7 @@ class TrackTileStackBlueprint {
     int? newRowIndex,
     int? trackTileIndexToEdit,
     TrackTileType? newType,
-    int? newTypeIndex,
+    int? newEighthTurns,
     TrackColor? newColor,
   }) {
     return TrackTileStackBlueprint(
@@ -52,7 +90,7 @@ class TrackTileStackBlueprint {
           if (i == trackTileIndexToEdit)
             singlePartBlueprints[i].copyWith(
               newType: newType,
-              newTypeIndex: newTypeIndex,
+              newEighthTurns: newEighthTurns,
               newColor: newColor,
             )
           else
@@ -69,25 +107,48 @@ class SingleTrackTileBlueprint {
   final TrackTileType type;
 
   /// Specifies the exact trackPart from this [TrackTileType]
-  final int typeIndex;
+  final int eighthTurns;
   final TrackColor color;
 
   const SingleTrackTileBlueprint({
     this.type = TrackTileType.none,
-    this.typeIndex = 0,
+    this.eighthTurns = 0,
     this.color = TrackColor.none,
   });
 
   SingleTrackTileBlueprint copyWith({
     TrackTileType? newType,
-    int? newTypeIndex,
+    int? newEighthTurns,
     TrackColor? newColor,
   }) {
     return SingleTrackTileBlueprint(
       type: newType ?? type,
-      typeIndex: newTypeIndex ?? typeIndex,
+      eighthTurns: newEighthTurns ?? eighthTurns,
       color: newColor ?? color,
     );
+  }
+
+  List<Direction?> getEntrancePoints() {
+    if (type == TrackTileType.straight) {
+      return [
+        Direction.getFromEighthTurnsFromTop(
+          Direction.top.eighthTurnsFromTop + eighthTurns,
+        ),
+        Direction.getFromEighthTurnsFromTop(
+          Direction.bottom.eighthTurnsFromTop + eighthTurns,
+        ),
+      ];
+    } else if (type == TrackTileType.strongCurve) {
+      return [
+        Direction.getFromEighthTurnsFromTop(
+          Direction.top.eighthTurnsFromTop + eighthTurns,
+        ),
+        Direction.getFromEighthTurnsFromTop(
+          Direction.right.eighthTurnsFromTop + eighthTurns,
+        ),
+      ];
+    }
+    return [null, null];
   }
 }
 
@@ -102,7 +163,7 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
             singlePartBlueprints: [
               SingleTrackTileBlueprint(
                 type: TrackTileType.straight,
-                typeIndex: 0,
+                eighthTurns: 0,
                 color: TrackColor.none,
               ),
             ],
@@ -113,7 +174,7 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
             singlePartBlueprints: [
               SingleTrackTileBlueprint(
                 type: TrackTileType.strongCurve,
-                typeIndex: 2,
+                eighthTurns: 2,
                 color: TrackColor.red,
               ),
             ],
@@ -124,7 +185,7 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
             singlePartBlueprints: [
               SingleTrackTileBlueprint(
                 type: TrackTileType.straight,
-                typeIndex: 0,
+                eighthTurns: 0,
                 color: TrackColor.green,
               ),
             ],
@@ -135,7 +196,7 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
             singlePartBlueprints: [
               SingleTrackTileBlueprint(
                 type: TrackTileType.strongCurve,
-                typeIndex: 3,
+                eighthTurns: 3,
                 color: TrackColor.blue,
               ),
             ],
@@ -182,7 +243,7 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
     required int rowIndex,
     required int trackTileIndex,
     TrackTileType? newType,
-    int? newTypeIndex,
+    int? newEighthTurns,
     TrackColor? newColor,
   }) {
     state = [
@@ -192,7 +253,7 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
           blueprint.copyWith(
             trackTileIndexToEdit: trackTileIndex,
             newType: newType,
-            newTypeIndex: newTypeIndex,
+            newEighthTurns: newEighthTurns,
             newColor: newColor,
           )
         else
@@ -202,7 +263,7 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
 
   void addTrackRow(Direction direction) {
     int currentRowCount = getTrackRowCount();
-    if (direction == Direction.down) {
+    if (direction == Direction.bottom) {
       state = [
         ...state,
         for (int i = 0; i < getTrackColumnCount(); i++)
@@ -230,7 +291,7 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
     int currentRowCount = getTrackRowCount();
 
     if (currentRowCount > 1) {
-      if (direction == Direction.down) {
+      if (direction == Direction.bottom) {
         state = [
           for (final blueprint in state
               .where((blueprint) => blueprint.rowIndex < currentRowCount - 1))

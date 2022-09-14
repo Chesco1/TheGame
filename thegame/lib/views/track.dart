@@ -8,8 +8,9 @@ import 'package:thegame/levelbuilder_popupmenus/tracktile_popupmenu.dart';
 import 'package:thegame/train/train_info.dart';
 
 class Track extends ConsumerWidget {
-  static const int maxTrackTilesInRow = 12;
-  static const int trackWidth = 11; // should be a number between 0 and 100
+  static const int maxTrackTilesInRow = 15;
+  static const int trackWidth = 12; // should be a number between 0 and 100
+  static const double levelBuilderTileSpacing = 1;
 
   final bool isLevelBuilder;
 
@@ -34,15 +35,20 @@ class Track extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const _TrackRowController(direction: Direction.up),
-                for (int i = 0; i < totalRows; i++)
+                const _TrackRowController(direction: Direction.top),
+                for (int i = 0; i < totalRows; i++) ...[
+                  if (isLevelBuilder && i > 0)
+                    const SizedBox(
+                      height: Track.levelBuilderTileSpacing,
+                    ),
                   Flexible(
                     child: _TrackRow(
                       isLevelBuilder: isLevelBuilder,
                       rowIndex: i,
                     ),
                   ),
-                const _TrackRowController(direction: Direction.down),
+                ],
+                const _TrackRowController(direction: Direction.bottom),
               ],
             ),
           ),
@@ -199,14 +205,19 @@ class _TrackRow extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        for (int i = 0; i < totalColumns; i++)
+        for (int i = 0; i < totalColumns; i++) ...[
+          if (isLevelBuilder && i > 0)
+            const SizedBox(
+              width: Track.levelBuilderTileSpacing,
+            ),
           Flexible(
             child: _PositionedTrackTileStack(
               columnIndex: i,
               rowIndex: rowIndex,
               isLevelBuilder: isLevelBuilder,
             ),
-          )
+          ),
+        ],
       ],
     );
   }
@@ -287,11 +298,10 @@ class TrackTileStack extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return SizedBox(
       height: size,
-      child: ClipRRect(
+      child: ClipRect(
         child: AspectRatio(
           aspectRatio: 1,
           child: Container(
-            margin: isLevelBuilder ? const EdgeInsets.all(0.5) : null,
             color: isLevelBuilder ? Colors.black12 : null,
             child: Stack(
               children: [
@@ -299,7 +309,7 @@ class TrackTileStack extends ConsumerWidget {
                   SingleTrackTile(
                     trackTileIndex: i,
                     type: singleTrackTileBlueprints[i].type,
-                    typeIndex: singleTrackTileBlueprints[i].typeIndex,
+                    eighthTurns: singleTrackTileBlueprints[i].eighthTurns,
                     color: singleTrackTileBlueprints[i].color,
                     size: size,
                   ),
@@ -317,7 +327,7 @@ class TrackTileStack extends ConsumerWidget {
 class SingleTrackTile extends ConsumerWidget {
   final int trackTileIndex;
   final TrackTileType type;
-  final int typeIndex;
+  final int eighthTurns;
   final TrackColor color;
   final double? size;
 
@@ -325,7 +335,7 @@ class SingleTrackTile extends ConsumerWidget {
     Key? key,
     required this.trackTileIndex,
     required this.type,
-    required this.typeIndex,
+    required this.eighthTurns,
     this.color = TrackColor.none,
     this.size,
   }) : super(key: key);
@@ -338,7 +348,7 @@ class SingleTrackTile extends ConsumerWidget {
         aspectRatio: 1,
         child: CustomPaint(
           size: Size.infinite,
-          painter: LinePainter(type, typeIndex, color),
+          painter: LinePainter(type, eighthTurns, color),
         ),
       ),
     );
@@ -349,12 +359,12 @@ class SingleTrackTile extends ConsumerWidget {
 
 class LinePainter extends CustomPainter {
   final TrackTileType type;
-  final int typeIndex;
+  final int eighthTurns;
   final TrackColor color;
 
   const LinePainter(
     this.type,
-    this.typeIndex,
+    this.eighthTurns,
     this.color,
   );
 
@@ -374,25 +384,25 @@ class LinePainter extends CustomPainter {
       ..color = _getPaintColor()
       ..strokeWidth = (Track.trackWidth / 100.0) * canvasSize.height
       ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.square);
+      ..strokeCap = StrokeCap.butt);
   }
 
   void _paintStrongCurve(Canvas canvas, Size canvasSize, Paint paint) {
-    if (typeIndex == 0) {
+    if (eighthTurns == 0) {
       _paintStrongCurve0(canvas, canvasSize, paint);
-    } else if (typeIndex == 1) {
+    } else if (eighthTurns == 1) {
       _paintStrongCurve1(canvas, canvasSize, paint);
-    } else if (typeIndex == 2) {
+    } else if (eighthTurns == 2) {
       _paintStrongCurve2(canvas, canvasSize, paint);
-    } else if (typeIndex == 3) {
+    } else if (eighthTurns == 3) {
       _paintStrongCurve3(canvas, canvasSize, paint);
     }
   }
 
   void _paintStraightLine(Canvas canvas, Size canvasSize, Paint paint) {
-    if (typeIndex == 0) {
+    if (eighthTurns == 0) {
       _paintStraight0(canvas, canvasSize, paint);
-    } else if (typeIndex == 1) {
+    } else if (eighthTurns == 1) {
       _paintStraight1(canvas, canvasSize, paint);
     }
   }
@@ -469,6 +479,6 @@ class LinePainter extends CustomPainter {
   @override
   bool shouldRepaint(LinePainter oldDelegate) =>
       oldDelegate.type != type ||
-      oldDelegate.typeIndex != typeIndex ||
+      oldDelegate.eighthTurns != eighthTurns ||
       oldDelegate.color != color;
 }

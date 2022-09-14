@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:thegame/blueprints/track_blueprint.dart';
@@ -46,7 +44,7 @@ class _TrackTilePopupMenuState extends ConsumerState<TrackTilePopupMenu> {
             columnIndex: widget.columnIndex,
             rowIndex: widget.rowIndex,
             trackTileIndex: 0,
-          ),
+          ), // TODO: make TrackTilePicker with type selector
         ],
       ),
     );
@@ -145,7 +143,7 @@ class _TrackTileWrap extends ConsumerWidget {
                       rowIndex: rowIndex,
                       trackTileIndex: 0,
                       newType: type,
-                      newTypeIndex: i,
+                      newEighthTurns: i,
                     );
                   }),
                   child: TrackTileStack(
@@ -156,7 +154,7 @@ class _TrackTileWrap extends ConsumerWidget {
                     singleTrackTileBlueprints: [
                       SingleTrackTileBlueprint(
                         type: type,
-                        typeIndex: i,
+                        eighthTurns: i,
                         color: trackTileStackBlueprint
                                     .singlePartBlueprints.length >
                                 trackTileIndex
