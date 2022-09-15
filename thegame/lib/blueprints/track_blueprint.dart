@@ -4,9 +4,9 @@ import 'package:thegame/train/train_info.dart';
 
 enum TrackTileType {
   none(0),
-  straight(2),
+  straight(4),
   weakCurve(0),
-  strongCurve(4);
+  strongCurve(8);
 
   final int tileAmount;
   const TrackTileType(this.tileAmount);
@@ -166,6 +166,11 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
                 eighthTurns: 0,
                 color: TrackColor.none,
               ),
+              SingleTrackTileBlueprint(
+                type: TrackTileType.straight,
+                eighthTurns: 2,
+                color: TrackColor.none,
+              ),
             ],
           ),
           const TrackTileStackBlueprint(
@@ -198,6 +203,11 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
                 type: TrackTileType.strongCurve,
                 eighthTurns: 3,
                 color: TrackColor.blue,
+              ),
+              SingleTrackTileBlueprint(
+                type: TrackTileType.strongCurve,
+                eighthTurns: 2,
+                color: TrackColor.green,
               ),
             ],
           ),

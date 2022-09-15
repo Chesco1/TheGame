@@ -15,7 +15,7 @@ class LevelView extends StatelessWidget {
       appBar: AppBar(),
       body: Container(
         alignment: Alignment.center,
-        color: Colors.yellow,
+        color: Colors.white,
         child: LayoutGrid(
           areas: '''
           track program  

@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,7 +10,7 @@ import 'package:thegame/train/train_info.dart';
 
 class Track extends ConsumerWidget {
   static const int maxTrackTilesInRow = 15;
-  static const int trackWidth = 12; // should be a number between 0 and 100
+  static const int trackWidth = 13; // should be a number between 0 and 100
   static const double levelBuilderTileSpacing = 1;
 
   final bool isLevelBuilder;
@@ -298,23 +299,21 @@ class TrackTileStack extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return SizedBox(
       height: size,
-      child: ClipRect(
-        child: AspectRatio(
-          aspectRatio: 1,
-          child: Container(
-            color: isLevelBuilder ? Colors.black12 : null,
-            child: Stack(
-              children: [
-                for (int i = 0; i < singleTrackTileBlueprints.length; i++)
-                  SingleTrackTile(
-                    trackTileIndex: i,
-                    type: singleTrackTileBlueprints[i].type,
-                    eighthTurns: singleTrackTileBlueprints[i].eighthTurns,
-                    color: singleTrackTileBlueprints[i].color,
-                    size: size,
-                  ),
-              ],
-            ),
+      child: AspectRatio(
+        aspectRatio: 1,
+        child: Container(
+          color: isLevelBuilder ? Colors.black12 : null,
+          child: Stack(
+            children: [
+              for (int i = 0; i < singleTrackTileBlueprints.length; i++)
+                SingleTrackTile(
+                  trackTileIndex: i,
+                  type: singleTrackTileBlueprints[i].type,
+                  eighthTurns: singleTrackTileBlueprints[i].eighthTurns,
+                  color: singleTrackTileBlueprints[i].color,
+                  size: size,
+                ),
+            ],
           ),
         ),
       ),
@@ -346,9 +345,12 @@ class SingleTrackTile extends ConsumerWidget {
       height: size,
       child: AspectRatio(
         aspectRatio: 1,
-        child: CustomPaint(
-          size: Size.infinite,
-          painter: LinePainter(type, eighthTurns, color),
+        child: RotatedBox(
+          quarterTurns: (eighthTurns / 2).floor(),
+          child: CustomPaint(
+            size: Size.infinite,
+            painter: LinePainter(type, eighthTurns, color),
+          ),
         ),
       ),
     );
@@ -370,13 +372,13 @@ class LinePainter extends CustomPainter {
 
   Color _getPaintColor() {
     if (color == TrackColor.red) {
-      return Colors.red;
+      return Colors.red.withOpacity(0.7);
     } else if (color == TrackColor.green) {
-      return Colors.green;
+      return Colors.green.withOpacity(0.7);
     } else if (color == TrackColor.blue) {
-      return Colors.blue;
+      return Colors.blue.withOpacity(0.7);
     }
-    return Colors.black;
+    return Colors.black.withOpacity(0.7);
   }
 
   Paint _makePaint(Size canvasSize) {
@@ -387,23 +389,19 @@ class LinePainter extends CustomPainter {
       ..strokeCap = StrokeCap.butt);
   }
 
-  void _paintStrongCurve(Canvas canvas, Size canvasSize, Paint paint) {
-    if (eighthTurns == 0) {
-      _paintStrongCurve0(canvas, canvasSize, paint);
-    } else if (eighthTurns == 1) {
-      _paintStrongCurve1(canvas, canvasSize, paint);
-    } else if (eighthTurns == 2) {
-      _paintStrongCurve2(canvas, canvasSize, paint);
-    } else if (eighthTurns == 3) {
-      _paintStrongCurve3(canvas, canvasSize, paint);
+  void _paintQuarterTurn(Canvas canvas, Size canvasSize, Paint paint) {
+    if (eighthTurns.isEven) {
+      _paintQuarterTurnFromTop(canvas, canvasSize, paint);
+    } else {
+      _paintQuarterTurnFromTopRight(canvas, canvasSize, paint);
     }
   }
 
   void _paintStraightLine(Canvas canvas, Size canvasSize, Paint paint) {
-    if (eighthTurns == 0) {
-      _paintStraight0(canvas, canvasSize, paint);
-    } else if (eighthTurns == 1) {
-      _paintStraight1(canvas, canvasSize, paint);
+    if (eighthTurns.isEven) {
+      _paintStraightFromTop(canvas, canvasSize, paint);
+    } else {
+      _paintStraightLineFromTopRight(canvas, canvasSize, paint);
     }
   }
 
@@ -412,35 +410,36 @@ class LinePainter extends CustomPainter {
     final paint = _makePaint(size);
     final rect = Rect.fromLTWH(0, 0, size.width, size.height);
 
-    canvas.clipRect(rect);
+    canvas.clipRect(rect, doAntiAlias: false);
     if (type == TrackTileType.straight) {
       _paintStraightLine(canvas, size, paint);
     } else if (type == TrackTileType.strongCurve) {
-      _paintStrongCurve(canvas, size, paint);
+      _paintQuarterTurn(canvas, size, paint);
     }
   }
 
-  ///////////////////// Straight Lines /////////////////////////////////////////
+/////////////////////////// Straight Lines /////////////////////////////////////
 
-  void _paintStraight0(Canvas canvas, Size canvasSize, Paint paint) {
+  void _paintStraightFromTop(Canvas canvas, Size canvasSize, Paint paint) {
     canvas.drawLine(
-      Offset(0.0, canvasSize.height * 0.5),
-      Offset(canvasSize.width, canvasSize.height * 0.5),
-      paint,
-    );
-  }
-
-  void _paintStraight1(Canvas canvas, Size canvasSize, Paint paint) {
-    canvas.drawLine(
-      Offset(canvasSize.width * 0.5, 0.0),
+      Offset(canvasSize.width * 0.5, 0),
       Offset(canvasSize.width * 0.5, canvasSize.height),
       paint,
     );
   }
 
-  ///////////////////// Strong Curves Lines ////////////////////////////////////
+  void _paintStraightLineFromTopRight(
+      Canvas canvas, Size canvasSize, Paint paint) {
+    canvas.drawLine(
+      Offset(canvasSize.width, 0.0),
+      Offset(0.0, canvasSize.height),
+      paint,
+    );
+  }
 
-  void _paintStrongCurve0(Canvas canvas, Size canvasSize, Paint paint) {
+//////////////////////////// Quarter Turns /////////////////////////////////////
+
+  void _paintQuarterTurnFromTop(Canvas canvas, Size canvasSize, Paint paint) {
     Rect rect = Rect.fromCenter(
       center: Offset(canvasSize.width, 0.0),
       height: canvasSize.height,
@@ -449,32 +448,24 @@ class LinePainter extends CustomPainter {
     canvas.drawArc(rect, pi * 0.5, pi * 0.5, false, paint);
   }
 
-  void _paintStrongCurve1(Canvas canvas, Size canvasSize, Paint paint) {
+  void _paintQuarterTurnFromTopRight(
+      Canvas canvas, Size canvasSize, Paint paint) {
     Rect rect = Rect.fromCenter(
-      center: Offset(canvasSize.width, canvasSize.height),
-      height: canvasSize.height,
-      width: canvasSize.width,
+      center: Offset(
+        canvasSize.width * 1.5,
+        canvasSize.height * 0.5,
+      ),
+      height: sqrt(
+        pow(canvasSize.width, 2) + pow(canvasSize.height, 2),
+      ),
+      width: sqrt(
+        pow(canvasSize.width, 2) + pow(canvasSize.height, 2),
+      ),
     );
-    canvas.drawArc(rect, pi, pi * 0.5, false, paint);
+    canvas.drawArc(rect, pi * 0.75, pi * 0.5, false, paint);
   }
 
-  void _paintStrongCurve2(Canvas canvas, Size canvasSize, Paint paint) {
-    Rect rect = Rect.fromCenter(
-      center: Offset(0, canvasSize.height),
-      height: canvasSize.height,
-      width: canvasSize.width,
-    );
-    canvas.drawArc(rect, pi * 1.5, pi * 0.5, false, paint);
-  }
-
-  void _paintStrongCurve3(Canvas canvas, Size canvasSize, Paint paint) {
-    Rect rect = Rect.fromCenter(
-      center: Offset(0.0, 0.0),
-      height: canvasSize.height,
-      width: canvasSize.width,
-    );
-    canvas.drawArc(rect, 0.0, pi * 0.5, false, paint);
-  }
+////////////////////////////////////////////////////////////////////////////////
 
   @override
   bool shouldRepaint(LinePainter oldDelegate) =>
