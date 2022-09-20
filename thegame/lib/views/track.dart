@@ -329,6 +329,7 @@ class SingleTrackTile extends ConsumerWidget {
   final int eighthTurns;
   final TrackColor color;
   final double? size;
+  final bool isLevelBuilder;
 
   const SingleTrackTile({
     Key? key,
@@ -337,6 +338,7 @@ class SingleTrackTile extends ConsumerWidget {
     required this.eighthTurns,
     this.color = TrackColor.none,
     this.size,
+    this.isLevelBuilder = false,
   }) : super(key: key);
 
   @override
@@ -346,10 +348,14 @@ class SingleTrackTile extends ConsumerWidget {
       child: AspectRatio(
         aspectRatio: 1,
         child: RotatedBox(
-          quarterTurns: (eighthTurns / 2).floor(),
+          quarterTurns: 0,
           child: CustomPaint(
             size: Size.infinite,
-            painter: LinePainter(type, eighthTurns, color),
+            painter: LinePainter(
+              type: type,
+              eighthTurns: eighthTurns,
+              color: color,
+            ),
           ),
         ),
       ),
@@ -359,16 +365,25 @@ class SingleTrackTile extends ConsumerWidget {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+enum StrongCurvePart { over, under, both }
+
 class LinePainter extends CustomPainter {
   final TrackTileType type;
   final int eighthTurns;
   final TrackColor color;
 
-  const LinePainter(
-    this.type,
-    this.eighthTurns,
-    this.color,
-  );
+  final Direction? sideTileToPaint;
+  final StrongCurvePart strongCurvePart;
+  final bool isLevelBuilder;
+
+  const LinePainter({
+    required this.type,
+    required this.eighthTurns,
+    required this.color,
+    this.sideTileToPaint,
+    this.strongCurvePart = StrongCurvePart.both,
+    this.isLevelBuilder = false,
+  });
 
   Color _getPaintColor() {
     if (color == TrackColor.red) {
@@ -405,12 +420,37 @@ class LinePainter extends CustomPainter {
     }
   }
 
+  void translateCanvas(Canvas canvas, Size size) {
+    if (sideTileToPaint == Direction.top) {
+      canvas.translate(0, -(size.height));
+    } else if (sideTileToPaint == Direction.right) {
+      canvas.translate(0, (size.width));
+    } else if (sideTileToPaint == Direction.bottom) {
+      canvas.translate(0, (size.height));
+    } else if (sideTileToPaint == Direction.left) {
+      canvas.translate(0, -(size.width));
+    }
+  }
+
+  void rotateCanvas(Canvas canvas, Size size, int eighthTurns) {
+    canvas.translate(size.width / 2, size.height / 2);
+    canvas.rotate((pi / 4) * (eighthTurns % 8));
+    canvas.translate(-(size.width / 2), -(size.height / 2));
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = _makePaint(size);
     final rect = Rect.fromLTWH(0, 0, size.width, size.height);
 
     canvas.clipRect(rect, doAntiAlias: false);
+    rotateCanvas(
+      canvas,
+      size,
+      eighthTurns.isEven ? eighthTurns : eighthTurns - 1,
+    );
+    translateCanvas(canvas, size);
+
     if (type == TrackTileType.straight) {
       _paintStraightLine(canvas, size, paint);
     } else if (type == TrackTileType.strongCurve) {
@@ -462,7 +502,17 @@ class LinePainter extends CustomPainter {
         pow(canvasSize.width, 2) + pow(canvasSize.height, 2),
       ),
     );
-    canvas.drawArc(rect, pi * 0.75, pi * 0.5, false, paint);
+    canvas.drawArc(
+      rect,
+      (strongCurvePart == StrongCurvePart.both ||
+              (strongCurvePart == StrongCurvePart.over &&
+                  (eighthTurns == 3 || eighthTurns == 7))
+          ? pi * 0.75
+          : pi),
+      (strongCurvePart == StrongCurvePart.both ? pi * 0.5 : pi * 0.25),
+      false,
+      paint,
+    );
   }
 
 ////////////////////////////////////////////////////////////////////////////////
