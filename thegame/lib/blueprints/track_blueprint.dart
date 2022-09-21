@@ -163,12 +163,7 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
             singlePartBlueprints: [
               SingleTrackTileBlueprint(
                 type: TrackTileType.straight,
-                eighthTurns: 0,
-                color: TrackColor.none,
-              ),
-              SingleTrackTileBlueprint(
-                type: TrackTileType.straight,
-                eighthTurns: 2,
+                eighthTurns: 3,
                 color: TrackColor.none,
               ),
             ],
@@ -176,37 +171,20 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
           const TrackTileStackBlueprint(
             columnIndex: 1,
             rowIndex: 0,
-            singlePartBlueprints: [
-              SingleTrackTileBlueprint(
-                type: TrackTileType.strongCurve,
-                eighthTurns: 2,
-                color: TrackColor.red,
-              ),
-            ],
+            singlePartBlueprints: [],
           ),
           const TrackTileStackBlueprint(
             columnIndex: 0,
             rowIndex: 1,
-            singlePartBlueprints: [
-              SingleTrackTileBlueprint(
-                type: TrackTileType.straight,
-                eighthTurns: 0,
-                color: TrackColor.green,
-              ),
-            ],
+            singlePartBlueprints: [],
           ),
           const TrackTileStackBlueprint(
             columnIndex: 1,
             rowIndex: 1,
             singlePartBlueprints: [
               SingleTrackTileBlueprint(
-                type: TrackTileType.strongCurve,
+                type: TrackTileType.straight,
                 eighthTurns: 3,
-                color: TrackColor.blue,
-              ),
-              SingleTrackTileBlueprint(
-                type: TrackTileType.strongCurve,
-                eighthTurns: 2,
                 color: TrackColor.green,
               ),
             ],
