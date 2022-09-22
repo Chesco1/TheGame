@@ -10,7 +10,7 @@ import 'package:thegame/train/train_info.dart';
 
 class Track extends ConsumerWidget {
   static const int maxTrackTilesInRow = 15;
-  static const int trackWidth = 13; // should be a number between 0 and 100
+  static const int trackWidth = 12; // should be a number between 0 and 100
   static const double levelBuilderTileSpacing = 1;
 
   final bool isLevelBuilder;
@@ -243,53 +243,6 @@ class _PositionedTrackTileStack extends ConsumerWidget {
     this.isLevelBuilder = false,
   }) : super(key: key);
 
-  Map<Direction, List<SingleTrackTileBlueprint>> _getAdjecentTilesToDraw(
-      TrackNotifier trackNotifier, WidgetRef ref) {
-    final tilesToDraw = <Direction, List<SingleTrackTileBlueprint>>{};
-
-    tilesToDraw[Direction.top] = ref.watch(trackBlueprintProvider.select(
-      (blueprints) {
-        int index = trackNotifier.getTrackTileIndex(
-          columnIndex,
-          rowIndex - 1,
-        );
-        return !index.isNegative ? blueprints[index].singlePartBlueprints : [];
-      },
-    ));
-
-    tilesToDraw[Direction.right] = ref.watch(trackBlueprintProvider.select(
-      (blueprints) {
-        int index = trackNotifier.getTrackTileIndex(
-          columnIndex + 1,
-          rowIndex,
-        );
-        return !index.isNegative ? blueprints[index].singlePartBlueprints : [];
-      },
-    ));
-
-    tilesToDraw[Direction.bottom] = ref.watch(trackBlueprintProvider.select(
-      (blueprints) {
-        int index = trackNotifier.getTrackTileIndex(
-          columnIndex,
-          rowIndex + 1,
-        );
-        return !index.isNegative ? blueprints[index].singlePartBlueprints : [];
-      },
-    ));
-
-    tilesToDraw[Direction.left] = ref.watch(trackBlueprintProvider.select(
-      (blueprints) {
-        int index = trackNotifier.getTrackTileIndex(
-          columnIndex - 1,
-          rowIndex,
-        );
-        return !index.isNegative ? blueprints[index].singlePartBlueprints : [];
-      },
-    ));
-    print(tilesToDraw);
-    return tilesToDraw;
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final trackNotifier = ref.watch(trackBlueprintProvider.notifier);
@@ -321,7 +274,7 @@ class _PositionedTrackTileStack extends ConsumerWidget {
           singleTrackTileBlueprints:
               trackTileStackBlueprint.singlePartBlueprints,
           isLevelBuilder: isLevelBuilder,
-          sideTrackTiles: _getAdjecentTilesToDraw(trackNotifier, ref),
+          sideTrackTiles: trackTileStackBlueprint.sideParts,
         ),
       );
     } else {
@@ -336,13 +289,13 @@ class TrackTileStack extends ConsumerWidget {
   final List<SingleTrackTileBlueprint> singleTrackTileBlueprints;
   final bool isLevelBuilder;
   final double? size;
-  final Map<Direction, List<SingleTrackTileBlueprint>>? sideTrackTiles;
+  final Map<Direction, List<SingleTrackTileBlueprint>> sideTrackTiles;
   const TrackTileStack({
     Key? key,
     this.singleTrackTileBlueprints = const [],
     this.isLevelBuilder = false,
     this.size,
-    this.sideTrackTiles,
+    this.sideTrackTiles = const {},
   }) : super(key: key);
 
   bool _shouldOverlay(Direction direction, SingleTrackTileBlueprint blueprint) {
@@ -368,6 +321,7 @@ class TrackTileStack extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    //  print("bier");
     return SizedBox(
       height: size,
       child: AspectRatio(
@@ -376,23 +330,24 @@ class TrackTileStack extends ConsumerWidget {
           color: isLevelBuilder ? Colors.black12 : null,
           child: Stack(
             children: [
-              if (sideTrackTiles != null)
-                for (final mapEntry in sideTrackTiles!.entries)
-                  for (final blueprint in mapEntry.value.where(
-                    (blueprint) => !_shouldOverlay(
-                      mapEntry.key,
-                      blueprint,
-                    ),
-                  ))
-                    SingleTrackTile(
-                      sideTileToPaint: mapEntry.key,
-                      strongCurvePartToPaint: StrongCurvePart.under,
-                      type: blueprint.type,
-                      eighthTurns: blueprint.eighthTurns,
-                      color: blueprint.color,
-                      size: size,
-                      isLevelBuilder: isLevelBuilder,
-                    ),
+              for (final mapEntry in sideTrackTiles.entries)
+                for (final blueprint in mapEntry.value.where(
+                  (blueprint) =>
+                      blueprint.type == TrackTileType.strongCurve ||
+                      !_shouldOverlay(
+                        mapEntry.key,
+                        blueprint,
+                      ),
+                ))
+                  SingleTrackTile(
+                    sideTileToPaint: mapEntry.key,
+                    strongCurvePartToPaint: StrongCurvePart.under,
+                    type: blueprint.type,
+                    eighthTurns: blueprint.eighthTurns,
+                    color: blueprint.color,
+                    size: size,
+                    isLevelBuilder: isLevelBuilder,
+                  ),
               for (int i = 0; i < singleTrackTileBlueprints.length; i++)
                 SingleTrackTile(
                   type: singleTrackTileBlueprints[i].type,
@@ -401,23 +356,24 @@ class TrackTileStack extends ConsumerWidget {
                   size: size,
                   isLevelBuilder: isLevelBuilder,
                 ),
-              if (sideTrackTiles != null)
-                for (final mapEntry in sideTrackTiles!.entries)
-                  for (final blueprint in mapEntry.value.where(
-                    (blueprint) => _shouldOverlay(
-                      mapEntry.key,
-                      blueprint,
-                    ),
-                  ))
-                    SingleTrackTile(
-                      sideTileToPaint: mapEntry.key,
-                      strongCurvePartToPaint: StrongCurvePart.over,
-                      type: blueprint.type,
-                      eighthTurns: blueprint.eighthTurns,
-                      color: blueprint.color,
-                      size: size,
-                      isLevelBuilder: isLevelBuilder,
-                    ),
+              for (final mapEntry in sideTrackTiles.entries)
+                for (final blueprint in mapEntry.value.where(
+                  (blueprint) =>
+                      blueprint.type == TrackTileType.strongCurve ||
+                      _shouldOverlay(
+                        mapEntry.key,
+                        blueprint,
+                      ),
+                ))
+                  SingleTrackTile(
+                    sideTileToPaint: mapEntry.key,
+                    strongCurvePartToPaint: StrongCurvePart.over,
+                    type: blueprint.type,
+                    eighthTurns: blueprint.eighthTurns,
+                    color: blueprint.color,
+                    size: size,
+                    isLevelBuilder: isLevelBuilder,
+                  ),
             ],
           ),
         ),
@@ -512,7 +468,8 @@ class LinePainter extends CustomPainter {
       ..color = _getPaintColor()
       ..strokeWidth = (Track.trackWidth / 100.0) * canvasSize.height
       ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.butt);
+      ..strokeCap =
+          sideTileToPaint == null ? StrokeCap.square : StrokeCap.butt);
   }
 
   void _paintQuarterTurn(Canvas canvas, Size canvasSize, Paint paint) {
@@ -525,9 +482,17 @@ class LinePainter extends CustomPainter {
 
   void _paintStraightLine(Canvas canvas, Size canvasSize, Paint paint) {
     if (eighthTurns.isEven) {
-      _paintStraightFromTop(canvas, canvasSize, paint);
+      _paintStraightLineFromTop(canvas, canvasSize, paint);
     } else {
       _paintStraightLineFromTopRight(canvas, canvasSize, paint);
+    }
+  }
+
+  void _paintEighthTurn(Canvas canvas, Size canvasSize, Paint paint) {
+    if (eighthTurns.isEven) {
+      _paintEighthTurnFromTop(canvas, canvasSize, paint);
+    } else {
+      _paintEighthTurnFromTopRight(canvas, canvasSize, paint);
     }
   }
 
@@ -555,16 +520,15 @@ class LinePainter extends CustomPainter {
     }
   }
 
-  void rotateCanvas(Canvas canvas, Size size, int eighthTurns) {
-    canvas.translate(size.width / 2, size.height / 2);
+  void rotateCanvas(Canvas canvas, Size canvasSize, int eighthTurns) {
+    canvas.translate(canvasSize.width / 2, canvasSize.height / 2);
     canvas.rotate((pi / 4) * (eighthTurns % 8));
-    canvas.translate(-(size.width / 2), -(size.height / 2));
+    canvas.translate(-(canvasSize.width / 2), -(canvasSize.height / 2));
   }
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = _makePaint(size);
-    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
 
     translateCanvas(canvas, size);
     rotateCanvas(
@@ -577,12 +541,14 @@ class LinePainter extends CustomPainter {
       _paintStraightLine(canvas, size, paint);
     } else if (type == TrackTileType.strongCurve) {
       _paintQuarterTurn(canvas, size, paint);
+    } else if (type == TrackTileType.weakCurve) {
+      _paintEighthTurn(canvas, size, paint);
     }
   }
 
 /////////////////////////// Straight Lines /////////////////////////////////////
 
-  void _paintStraightFromTop(Canvas canvas, Size canvasSize, Paint paint) {
+  void _paintStraightLineFromTop(Canvas canvas, Size canvasSize, Paint paint) {
     canvas.drawLine(
       Offset(canvasSize.width * 0.5, 0),
       Offset(canvasSize.width * 0.5, canvasSize.height),
@@ -617,24 +583,49 @@ class LinePainter extends CustomPainter {
         canvasSize.width * 1.5,
         canvasSize.height * 0.5,
       ),
-      height: sqrt(
-        pow(canvasSize.width, 2) + pow(canvasSize.height, 2),
-      ),
-      width: sqrt(
-        pow(canvasSize.width, 2) + pow(canvasSize.height, 2),
-      ),
+      height: sqrt(pow(canvasSize.width, 2) + pow(canvasSize.height, 2)),
+      width: sqrt(pow(canvasSize.width, 2) + pow(canvasSize.height, 2)),
     );
     canvas.drawArc(
       rect,
-      (strongCurvePartToPaint == StrongCurvePart.both ||
-              (strongCurvePartToPaint == StrongCurvePart.under &&
-                  (eighthTurns == 3 || eighthTurns == 7))
-          ? pi * 0.75
-          : pi),
+      _getQuarterTurnFromTopRightStartAngle(),
       (strongCurvePartToPaint == StrongCurvePart.both ? pi * 0.5 : pi * 0.25),
       false,
       paint,
     );
+  }
+
+  double _getQuarterTurnFromTopRightStartAngle() {
+    if (strongCurvePartToPaint == StrongCurvePart.over) {
+      if (eighthTurns == 1 || eighthTurns == 5) {
+        return pi * 0.75;
+      }
+      return pi;
+    } else if (strongCurvePartToPaint == StrongCurvePart.under) {
+      if (eighthTurns == 1 || eighthTurns == 5) {
+        return pi;
+      }
+      return pi * 0.75;
+    }
+    return pi * 0.75;
+  }
+
+/////////////////////////// Eighth Turns ///////////////////////////////////////
+
+  void _paintEighthTurnFromTop(Canvas canvas, Size canvasSize, Paint paint) {
+    Rect rect = Rect.fromCenter(
+      center: Offset(canvasSize.width * 2, 0.0),
+      height: sqrt(pow(canvasSize.width, 2) + pow(canvasSize.height, 2)) * 2,
+      width: sqrt(pow(canvasSize.width, 2) + pow(canvasSize.height, 2)) * 2,
+    );
+    canvas.drawArc(rect, pi * 0.75, pi * 0.25, false, paint);
+  }
+
+  void _paintEighthTurnFromTopRight(
+      Canvas canvas, Size canvasSize, Paint paint) {
+    canvas.scale(1, -1);
+    canvas.translate(0, -(canvasSize.height));
+    _paintEighthTurnFromTop(canvas, canvasSize, paint);
   }
 
 ////////////////////////////////////////////////////////////////////////////////

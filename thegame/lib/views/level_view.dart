@@ -12,7 +12,9 @@ class LevelView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        title: Text("Chesco's genius project"),
+      ),
       body: Container(
         alignment: Alignment.center,
         color: Colors.white,

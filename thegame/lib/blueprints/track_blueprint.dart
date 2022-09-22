@@ -5,8 +5,8 @@ import 'package:thegame/train/train_info.dart';
 enum TrackTileType {
   none(0),
   straight(4),
-  weakCurve(0),
-  strongCurve(8);
+  strongCurve(8),
+  weakCurve(8);
 
   final int tileAmount;
   const TrackTileType(this.tileAmount);
@@ -65,6 +65,7 @@ class TrackTileStackBlueprint {
   final int columnIndex;
   final int rowIndex;
   final List<SingleTrackTileBlueprint> singlePartBlueprints;
+  final Map<Direction, List<SingleTrackTileBlueprint>> sideParts;
 
   const TrackTileStackBlueprint({
     required this.columnIndex,
@@ -72,6 +73,7 @@ class TrackTileStackBlueprint {
     this.singlePartBlueprints = const [
       SingleTrackTileBlueprint(),
     ],
+    this.sideParts = const {},
   });
 
   TrackTileStackBlueprint copyWith({
@@ -81,6 +83,7 @@ class TrackTileStackBlueprint {
     TrackTileType? newType,
     int? newEighthTurns,
     TrackColor? newColor,
+    Map<Direction, List<SingleTrackTileBlueprint>>? newSideParts,
   }) {
     return TrackTileStackBlueprint(
       columnIndex: newColumnIndex ?? columnIndex,
@@ -96,6 +99,7 @@ class TrackTileStackBlueprint {
           else
             singlePartBlueprints[i],
       ],
+      sideParts: newSideParts ?? sideParts,
     );
   }
 }
@@ -147,6 +151,15 @@ class SingleTrackTileBlueprint {
           Direction.right.eighthTurnsFromTop + eighthTurns,
         ),
       ];
+    } else if (type == TrackTileType.weakCurve) {
+      return [
+        Direction.getFromEighthTurnsFromTop(
+          Direction.top.eighthTurnsFromTop + eighthTurns,
+        ),
+        Direction.getFromEighthTurnsFromTop(
+          Direction.bottomRight.eighthTurnsFromTop + eighthTurns,
+        ),
+      ];
     }
     return [null, null];
   }
@@ -171,12 +184,16 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
           const TrackTileStackBlueprint(
             columnIndex: 1,
             rowIndex: 0,
-            singlePartBlueprints: [],
+            singlePartBlueprints: [
+              SingleTrackTileBlueprint(),
+            ],
           ),
           const TrackTileStackBlueprint(
             columnIndex: 0,
             rowIndex: 1,
-            singlePartBlueprints: [],
+            singlePartBlueprints: [
+              SingleTrackTileBlueprint(),
+            ],
           ),
           const TrackTileStackBlueprint(
             columnIndex: 1,
@@ -247,6 +264,78 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
         else
           blueprint,
     ];
+    for (final blueprint in state) {
+      if (blueprint.columnIndex == columnIndex &&
+          blueprint.rowIndex == rowIndex) {
+        _updateSideParts(blueprint);
+      }
+    }
+  }
+
+  void _updateSideParts(TrackTileStackBlueprint updatedBlueprint) {
+    final List<TrackTileStackBlueprint> temp = List.from(state);
+
+    for (int i = 0; i < temp.length; i++) {
+      if (temp[i].columnIndex == updatedBlueprint.columnIndex &&
+          temp[i].rowIndex == updatedBlueprint.rowIndex + 1) {
+        Map<Direction, List<SingleTrackTileBlueprint>> sideParts =
+            Map.from(temp[i].sideParts);
+        sideParts[Direction.top] = updatedBlueprint.singlePartBlueprints
+            .where((blueprint) =>
+                blueprint.getEntrancePoints().contains(Direction.bottomLeft) ||
+                blueprint.getEntrancePoints().contains(Direction.bottomRight))
+            .toList();
+        temp[i] = temp[i].copyWith(
+          newSideParts: sideParts,
+        );
+      }
+    }
+    for (int i = 0; i < temp.length; i++) {
+      if (temp[i].columnIndex == updatedBlueprint.columnIndex - 1 &&
+          temp[i].rowIndex == updatedBlueprint.rowIndex) {
+        Map<Direction, List<SingleTrackTileBlueprint>> sideParts =
+            Map.from(temp[i].sideParts);
+        sideParts[Direction.right] = updatedBlueprint.singlePartBlueprints
+            .where((blueprint) =>
+                blueprint.getEntrancePoints().contains(Direction.topLeft) ||
+                blueprint.getEntrancePoints().contains(Direction.bottomLeft))
+            .toList();
+        temp[i] = temp[i].copyWith(
+          newSideParts: sideParts,
+        );
+      }
+    }
+    for (int i = 0; i < temp.length; i++) {
+      if (temp[i].columnIndex == updatedBlueprint.columnIndex &&
+          temp[i].rowIndex == updatedBlueprint.rowIndex - 1) {
+        Map<Direction, List<SingleTrackTileBlueprint>> sideParts =
+            Map.from(temp[i].sideParts);
+        sideParts[Direction.bottom] = updatedBlueprint.singlePartBlueprints
+            .where((blueprint) =>
+                blueprint.getEntrancePoints().contains(Direction.topLeft) ||
+                blueprint.getEntrancePoints().contains(Direction.topRight))
+            .toList();
+        temp[i] = temp[i].copyWith(
+          newSideParts: sideParts,
+        );
+      }
+    }
+    for (int i = 0; i < temp.length; i++) {
+      if (temp[i].columnIndex == updatedBlueprint.columnIndex + 1 &&
+          temp[i].rowIndex == updatedBlueprint.rowIndex) {
+        Map<Direction, List<SingleTrackTileBlueprint>> sideParts =
+            Map.from(temp[i].sideParts);
+        sideParts[Direction.left] = updatedBlueprint.singlePartBlueprints
+            .where((blueprint) =>
+                blueprint.getEntrancePoints().contains(Direction.topRight) ||
+                blueprint.getEntrancePoints().contains(Direction.bottomRight))
+            .toList();
+        temp[i] = temp[i].copyWith(
+          newSideParts: sideParts,
+        );
+      }
+    }
+    state = [...temp];
   }
 
   void addTrackRow(Direction direction) {
@@ -260,6 +349,10 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
             rowIndex: currentRowCount,
           )
       ];
+      for (final blueprint in state
+          .where((blueprint) => blueprint.rowIndex == currentRowCount - 1)) {
+        _updateSideParts(blueprint);
+      }
     } else {
       state = [
         for (final blueprint in state)
@@ -272,6 +365,10 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
             rowIndex: 0,
           ),
       ];
+      for (final blueprint
+          in state.where((blueprint) => blueprint.rowIndex == 1)) {
+        _updateSideParts(blueprint);
+      }
     }
   }
 
@@ -283,13 +380,30 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
         state = [
           for (final blueprint in state
               .where((blueprint) => blueprint.rowIndex < currentRowCount - 1))
-            blueprint,
+            blueprint.copyWith(
+              newSideParts: Map.fromEntries(
+                blueprint.sideParts.entries.where(
+                  (mapEntry) => blueprint.rowIndex == currentRowCount - 2
+                      ? mapEntry.key != Direction.bottom
+                      : true,
+                ),
+              ),
+            ),
         ];
       } else {
         state = [
           for (final blueprint
               in state.where((blueprint) => blueprint.rowIndex > 0))
-            blueprint.copyWith(newRowIndex: blueprint.rowIndex - 1),
+            blueprint.copyWith(
+              newRowIndex: blueprint.rowIndex - 1,
+              newSideParts: Map.fromEntries(
+                blueprint.sideParts.entries.where(
+                  (mapEntry) => blueprint.rowIndex == 1
+                      ? mapEntry.key != Direction.top
+                      : true,
+                ),
+              ),
+            ),
         ];
       }
     }
@@ -307,6 +421,10 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
             rowIndex: i,
           )
       ];
+      for (final blueprint in state.where(
+          (blueprint) => blueprint.columnIndex == currentColumnCount - 1)) {
+        _updateSideParts(blueprint);
+      }
     } else {
       state = [
         for (final blueprint in state)
@@ -319,6 +437,10 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
             rowIndex: i,
           )
       ];
+      for (final blueprint
+          in state.where((blueprint) => blueprint.columnIndex == 1)) {
+        _updateSideParts(blueprint);
+      }
     }
   }
 
@@ -330,13 +452,30 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
         state = [
           for (final blueprint in state.where(
               (blueprint) => blueprint.columnIndex < currentColumnCount - 1))
-            blueprint,
+            blueprint.copyWith(
+              newSideParts: Map.fromEntries(
+                blueprint.sideParts.entries.where(
+                  (mapEntry) => blueprint.columnIndex == currentColumnCount - 2
+                      ? mapEntry.key != Direction.right
+                      : true,
+                ),
+              ),
+            ),
         ];
       } else {
         state = [
           for (final blueprint
               in state.where((blueprint) => blueprint.columnIndex > 0))
-            blueprint.copyWith(newColumnIndex: blueprint.columnIndex - 1),
+            blueprint.copyWith(
+              newColumnIndex: blueprint.columnIndex - 1,
+              newSideParts: Map.fromEntries(
+                blueprint.sideParts.entries.where(
+                  (mapEntry) => blueprint.columnIndex == 1
+                      ? mapEntry.key != Direction.left
+                      : true,
+                ),
+              ),
+            ),
         ];
       }
     }
