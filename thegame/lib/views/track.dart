@@ -1,16 +1,14 @@
 import 'dart:math';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:thegame/blueprints/track_blueprint.dart';
 import 'package:thegame/levelbuilder_popupmenus/non_closing_popupmenuitem.dart';
 import 'package:thegame/levelbuilder_popupmenus/tracktile_popupmenu.dart';
-import 'package:thegame/train/train_info.dart';
 
 class Track extends ConsumerWidget {
   static const int maxTrackTilesInRow = 15;
-  static const int trackWidth = 12; // should be a number between 0 and 100
+  static const int trackWidth = 14; // should be a number between 0 and 100
   static const double levelBuilderTileSpacing = 1;
 
   final bool isLevelBuilder;
@@ -298,30 +296,8 @@ class TrackTileStack extends ConsumerWidget {
     this.sideTrackTiles = const {},
   }) : super(key: key);
 
-  bool _shouldOverlay(Direction direction, SingleTrackTileBlueprint blueprint) {
-    if (direction == Direction.top) {
-      if (blueprint.getEntrancePoints().contains(Direction.bottomRight)) {
-        return true;
-      }
-    } else if (direction == Direction.right) {
-      if (blueprint.getEntrancePoints().contains(Direction.topLeft)) {
-        return true;
-      }
-    } else if (direction == Direction.bottom) {
-      if (blueprint.getEntrancePoints().contains(Direction.topLeft)) {
-        return true;
-      }
-    } else if (direction == Direction.left) {
-      if (blueprint.getEntrancePoints().contains(Direction.bottomRight)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    //  print("bier");
     return SizedBox(
       height: size,
       child: AspectRatio(
@@ -330,17 +306,18 @@ class TrackTileStack extends ConsumerWidget {
           color: isLevelBuilder ? Colors.black12 : null,
           child: Stack(
             children: [
-              for (final mapEntry in sideTrackTiles.entries)
-                for (final blueprint in mapEntry.value.where(
+              for (final direction in sideTrackTiles.keys)
+                for (final blueprint in sideTrackTiles[direction]!.where(
                   (blueprint) =>
-                      blueprint.type == TrackTileType.strongCurve ||
-                      !_shouldOverlay(
-                        mapEntry.key,
-                        blueprint,
-                      ),
+                      blueprint
+                          .getEntrancePoints()
+                          .contains(Direction.topRight) ||
+                      blueprint
+                          .getEntrancePoints()
+                          .contains(Direction.bottomLeft),
                 ))
                   SingleTrackTile(
-                    sideTileToPaint: mapEntry.key,
+                    sideTileToPaint: direction,
                     strongCurvePartToPaint: StrongCurvePart.under,
                     type: blueprint.type,
                     eighthTurns: blueprint.eighthTurns,
@@ -356,17 +333,18 @@ class TrackTileStack extends ConsumerWidget {
                   size: size,
                   isLevelBuilder: isLevelBuilder,
                 ),
-              for (final mapEntry in sideTrackTiles.entries)
-                for (final blueprint in mapEntry.value.where(
+              for (final direction in sideTrackTiles.keys)
+                for (final blueprint in sideTrackTiles[direction]!.where(
                   (blueprint) =>
-                      blueprint.type == TrackTileType.strongCurve ||
-                      _shouldOverlay(
-                        mapEntry.key,
-                        blueprint,
-                      ),
+                      blueprint
+                          .getEntrancePoints()
+                          .contains(Direction.topLeft) ||
+                      blueprint
+                          .getEntrancePoints()
+                          .contains(Direction.bottomRight),
                 ))
                   SingleTrackTile(
-                    sideTileToPaint: mapEntry.key,
+                    sideTileToPaint: direction,
                     strongCurvePartToPaint: StrongCurvePart.over,
                     type: blueprint.type,
                     eighthTurns: blueprint.eighthTurns,
