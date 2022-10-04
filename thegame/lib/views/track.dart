@@ -8,7 +8,7 @@ import 'package:thegame/levelbuilder_popupmenus/tracktile_popupmenu.dart';
 
 class Track extends ConsumerWidget {
   static const int maxTrackTilesInRow = 15;
-  static const int trackWidth = 14; // should be a number between 0 and 100
+  static const int trackWidth = 15; // should be a number between 0 and 100
   static const double levelBuilderTileSpacing = 1;
 
   final bool isLevelBuilder;
@@ -325,11 +325,11 @@ class TrackTileStack extends ConsumerWidget {
                     size: size,
                     isLevelBuilder: isLevelBuilder,
                   ),
-              for (int i = 0; i < singleTrackTileBlueprints.length; i++)
+              for (final blueprint in singleTrackTileBlueprints)
                 SingleTrackTile(
-                  type: singleTrackTileBlueprints[i].type,
-                  eighthTurns: singleTrackTileBlueprints[i].eighthTurns,
-                  color: singleTrackTileBlueprints[i].color,
+                  type: blueprint.type,
+                  eighthTurns: blueprint.eighthTurns,
+                  color: blueprint.color,
                   size: size,
                   isLevelBuilder: isLevelBuilder,
                 ),
@@ -590,13 +590,44 @@ class LinePainter extends CustomPainter {
 
 /////////////////////////// Eighth Turns ///////////////////////////////////////
 
-  void _paintEighthTurnFromTop(Canvas canvas, Size canvasSize, Paint paint) {
+  void _paintEighthTurnFromTop(
+    Canvas canvas,
+    Size canvasSize,
+    Paint paint,
+  ) {
+    double oldRadius = sqrt(pow(canvasSize.height, 2) * 2);
+
+    double resizeFactor = canvasSize.height /
+        ((canvasSize.height - (oldRadius - canvasSize.height)) * 2);
+
+    double newRadius = oldRadius * resizeFactor;
+
     Rect rect = Rect.fromCenter(
-      center: Offset(canvasSize.width * 2, 0.0),
-      height: sqrt(pow(canvasSize.width, 2) + pow(canvasSize.height, 2)) * 2,
-      width: sqrt(pow(canvasSize.width, 2) + pow(canvasSize.height, 2)) * 2,
+      center: Offset(
+        (canvasSize.width * 2) -
+            ((oldRadius - newRadius) +
+                ((canvasSize.height / 2) - (oldRadius - canvasSize.height))),
+        0.0,
+      ),
+      height: newRadius * 2,
+      width: newRadius * 2,
     );
+
     canvas.drawArc(rect, pi * 0.75, pi * 0.25, false, paint);
+
+    canvas.drawLine(
+      Offset(
+        canvasSize.height,
+        canvasSize.height,
+      ),
+      Offset(
+        (canvasSize.height * resizeFactor) +
+            (sideTileToPaint == null ? (paint.strokeWidth * 0.35) : 0),
+        (canvasSize.height * resizeFactor) +
+            (sideTileToPaint == null ? (paint.strokeWidth * 0.35) : 0),
+      ),
+      paint..strokeCap = StrokeCap.butt,
+    );
   }
 
   void _paintEighthTurnFromTopRight(
