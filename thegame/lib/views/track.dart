@@ -645,21 +645,3 @@ class LinePainter extends CustomPainter {
       oldDelegate.eighthTurns != eighthTurns ||
       oldDelegate.color != color;
 }
-
-////////////////////
-///
-///
-
-class Bier extends ConsumerStatefulWidget {
-  const Bier({Key? key}) : super(key: key);
-
-  @override
-  ConsumerState<ConsumerStatefulWidget> createState() => _BierState();
-}
-
-class _BierState extends ConsumerState<Bier> {
-  @override
-  Widget build(BuildContext context) {
-    return Container();
-  }
-}
