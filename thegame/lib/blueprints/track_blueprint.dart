@@ -63,42 +63,88 @@ enum Direction {
 class TrackTileStackBlueprint {
   final int columnIndex;
   final int rowIndex;
-  final List<SingleTrackTileBlueprint> singlePartBlueprints;
+  final List<SingleTrackTileBlueprint> singleTileBlueprints;
   final Map<Direction, List<SingleTrackTileBlueprint>> sideParts;
 
   const TrackTileStackBlueprint({
     required this.columnIndex,
     required this.rowIndex,
-    this.singlePartBlueprints = const [
+    this.singleTileBlueprints = const [
       SingleTrackTileBlueprint(),
     ],
     this.sideParts = const {},
   });
 
-  TrackTileStackBlueprint copyWith({
+  TrackTileStackBlueprint copyWithUpdatedPosition({
     int? newColumnIndex,
     int? newRowIndex,
-    int? trackTileIndexToEdit,
-    TrackTileType? newType,
-    int? newEighthTurns,
-    TrackColor? newColor,
     Map<Direction, List<SingleTrackTileBlueprint>>? newSideParts,
   }) {
     return TrackTileStackBlueprint(
       columnIndex: newColumnIndex ?? columnIndex,
       rowIndex: newRowIndex ?? rowIndex,
-      singlePartBlueprints: [
-        for (int i = 0; i < singlePartBlueprints.length; i++)
-          if (i == trackTileIndexToEdit)
-            singlePartBlueprints[i].copyWith(
+      singleTileBlueprints: [
+        for (final blueprint in singleTileBlueprints) blueprint,
+      ],
+      sideParts: newSideParts ?? sideParts,
+    );
+  }
+
+  TrackTileStackBlueprint copyWithUpdatedSideParts({
+    Map<Direction, List<SingleTrackTileBlueprint>>? newSideParts,
+  }) {
+    return TrackTileStackBlueprint(
+      columnIndex: columnIndex,
+      rowIndex: rowIndex,
+      sideParts: newSideParts ?? sideParts,
+    );
+  }
+
+  TrackTileStackBlueprint copyWithAddedSingleTile() {
+    return TrackTileStackBlueprint(
+      columnIndex: columnIndex,
+      rowIndex: rowIndex,
+      singleTileBlueprints: [
+        for (int i = 0; i < singleTileBlueprints.length; i++)
+          singleTileBlueprints[i],
+        const SingleTrackTileBlueprint()
+      ],
+    );
+  }
+
+  TrackTileStackBlueprint copyWithRemovedSingleTile(
+    int indexTileToRemove,
+  ) {
+    return TrackTileStackBlueprint(
+      columnIndex: columnIndex,
+      rowIndex: rowIndex,
+      singleTileBlueprints: [
+        for (int i = 0; i < singleTileBlueprints.length; i++)
+          if (i != indexTileToRemove) singleTileBlueprints[i],
+      ],
+    );
+  }
+
+  TrackTileStackBlueprint copyWithUpdatedSingleTile({
+    int? indexSingleTileToEdit,
+    TrackTileType? newType,
+    int? newEighthTurns,
+    TrackColor? newColor,
+  }) {
+    return TrackTileStackBlueprint(
+      columnIndex: columnIndex,
+      rowIndex: rowIndex,
+      singleTileBlueprints: [
+        for (int i = 0; i < singleTileBlueprints.length; i++)
+          if (i == indexSingleTileToEdit)
+            singleTileBlueprints[i].copyWith(
               newType: newType,
               newEighthTurns: newEighthTurns,
               newColor: newColor,
             )
           else
-            singlePartBlueprints[i],
+            singleTileBlueprints[i],
       ],
-      sideParts: newSideParts ?? sideParts,
     );
   }
 }
@@ -109,7 +155,7 @@ class TrackTileStackBlueprint {
 class SingleTrackTileBlueprint {
   final TrackTileType type;
 
-  /// Specifies the exact trackPart from this [TrackTileType]
+  /// Specifies the exact trackTile from this [TrackTileType]
   final int eighthTurns;
   final TrackColor color;
 
@@ -172,7 +218,7 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
           const TrackTileStackBlueprint(
             columnIndex: 0,
             rowIndex: 0,
-            singlePartBlueprints: [
+            singleTileBlueprints: [
               SingleTrackTileBlueprint(
                 type: TrackTileType.straight,
                 eighthTurns: 3,
@@ -183,21 +229,21 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
           const TrackTileStackBlueprint(
             columnIndex: 1,
             rowIndex: 0,
-            singlePartBlueprints: [
+            singleTileBlueprints: [
               SingleTrackTileBlueprint(),
             ],
           ),
           const TrackTileStackBlueprint(
             columnIndex: 0,
             rowIndex: 1,
-            singlePartBlueprints: [
+            singleTileBlueprints: [
               SingleTrackTileBlueprint(),
             ],
           ),
           const TrackTileStackBlueprint(
             columnIndex: 1,
             rowIndex: 1,
-            singlePartBlueprints: [
+            singleTileBlueprints: [
               SingleTrackTileBlueprint(
                 type: TrackTileType.straight,
                 eighthTurns: 3,
@@ -254,8 +300,8 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
       for (final blueprint in state)
         if (blueprint.columnIndex == columnIndex &&
             blueprint.rowIndex == rowIndex)
-          blueprint.copyWith(
-            trackTileIndexToEdit: trackTileIndex,
+          blueprint.copyWithUpdatedSingleTile(
+            indexSingleTileToEdit: trackTileIndex,
             newType: newType,
             newEighthTurns: newEighthTurns,
             newColor: newColor,
@@ -279,12 +325,12 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
           temp[i].rowIndex == updatedBlueprint.rowIndex + 1) {
         Map<Direction, List<SingleTrackTileBlueprint>> sideParts =
             Map.from(temp[i].sideParts);
-        sideParts[Direction.top] = updatedBlueprint.singlePartBlueprints
+        sideParts[Direction.top] = updatedBlueprint.singleTileBlueprints
             .where((blueprint) =>
                 blueprint.getEntrancePoints().contains(Direction.bottomLeft) ||
                 blueprint.getEntrancePoints().contains(Direction.bottomRight))
             .toList();
-        temp[i] = temp[i].copyWith(
+        temp[i] = temp[i].copyWithUpdatedSideParts(
           newSideParts: sideParts,
         );
       }
@@ -294,12 +340,12 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
           temp[i].rowIndex == updatedBlueprint.rowIndex) {
         Map<Direction, List<SingleTrackTileBlueprint>> sideParts =
             Map.from(temp[i].sideParts);
-        sideParts[Direction.right] = updatedBlueprint.singlePartBlueprints
+        sideParts[Direction.right] = updatedBlueprint.singleTileBlueprints
             .where((blueprint) =>
                 blueprint.getEntrancePoints().contains(Direction.topLeft) ||
                 blueprint.getEntrancePoints().contains(Direction.bottomLeft))
             .toList();
-        temp[i] = temp[i].copyWith(
+        temp[i] = temp[i].copyWithUpdatedSideParts(
           newSideParts: sideParts,
         );
       }
@@ -309,12 +355,12 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
           temp[i].rowIndex == updatedBlueprint.rowIndex - 1) {
         Map<Direction, List<SingleTrackTileBlueprint>> sideParts =
             Map.from(temp[i].sideParts);
-        sideParts[Direction.bottom] = updatedBlueprint.singlePartBlueprints
+        sideParts[Direction.bottom] = updatedBlueprint.singleTileBlueprints
             .where((blueprint) =>
                 blueprint.getEntrancePoints().contains(Direction.topLeft) ||
                 blueprint.getEntrancePoints().contains(Direction.topRight))
             .toList();
-        temp[i] = temp[i].copyWith(
+        temp[i] = temp[i].copyWithUpdatedSideParts(
           newSideParts: sideParts,
         );
       }
@@ -324,12 +370,12 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
           temp[i].rowIndex == updatedBlueprint.rowIndex) {
         Map<Direction, List<SingleTrackTileBlueprint>> sideParts =
             Map.from(temp[i].sideParts);
-        sideParts[Direction.left] = updatedBlueprint.singlePartBlueprints
+        sideParts[Direction.left] = updatedBlueprint.singleTileBlueprints
             .where((blueprint) =>
                 blueprint.getEntrancePoints().contains(Direction.topRight) ||
                 blueprint.getEntrancePoints().contains(Direction.bottomRight))
             .toList();
-        temp[i] = temp[i].copyWith(
+        temp[i] = temp[i].copyWithUpdatedSideParts(
           newSideParts: sideParts,
         );
       }
@@ -355,7 +401,7 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
     } else {
       state = [
         for (final blueprint in state)
-          blueprint.copyWith(
+          blueprint.copyWithUpdatedPosition(
             newRowIndex: blueprint.rowIndex + 1,
           ),
         for (int i = 0; i < getTrackColumnCount(); i++)
@@ -379,7 +425,7 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
         state = [
           for (final blueprint in state
               .where((blueprint) => blueprint.rowIndex < currentRowCount - 1))
-            blueprint.copyWith(
+            blueprint.copyWithUpdatedSideParts(
               newSideParts: Map.fromEntries(
                 blueprint.sideParts.entries.where(
                   (mapEntry) => blueprint.rowIndex == currentRowCount - 2
@@ -393,7 +439,7 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
         state = [
           for (final blueprint
               in state.where((blueprint) => blueprint.rowIndex > 0))
-            blueprint.copyWith(
+            blueprint.copyWithUpdatedPosition(
               newRowIndex: blueprint.rowIndex - 1,
               newSideParts: Map.fromEntries(
                 blueprint.sideParts.entries.where(
@@ -427,7 +473,7 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
     } else {
       state = [
         for (final blueprint in state)
-          blueprint.copyWith(
+          blueprint.copyWithUpdatedPosition(
             newColumnIndex: blueprint.columnIndex + 1,
           ),
         for (int i = 0; i < getTrackRowCount(); i++)
@@ -451,7 +497,7 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
         state = [
           for (final blueprint in state.where(
               (blueprint) => blueprint.columnIndex < currentColumnCount - 1))
-            blueprint.copyWith(
+            blueprint.copyWithUpdatedSideParts(
               newSideParts: Map.fromEntries(
                 blueprint.sideParts.entries.where(
                   (mapEntry) => blueprint.columnIndex == currentColumnCount - 2
@@ -465,7 +511,7 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
         state = [
           for (final blueprint
               in state.where((blueprint) => blueprint.columnIndex > 0))
-            blueprint.copyWith(
+            blueprint.copyWithUpdatedPosition(
               newColumnIndex: blueprint.columnIndex - 1,
               newSideParts: Map.fromEntries(
                 blueprint.sideParts.entries.where(

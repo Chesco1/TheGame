@@ -270,7 +270,7 @@ class _PositionedTrackTileStack extends ConsumerWidget {
         ],
         child: TrackTileStack(
           singleTrackTileBlueprints:
-              trackTileStackBlueprint.singlePartBlueprints,
+              trackTileStackBlueprint.singleTileBlueprints,
           isLevelBuilder: isLevelBuilder,
           sideTrackTiles: trackTileStackBlueprint.sideParts,
         ),

@@ -45,7 +45,7 @@ class _TrackTilePopupMenuState extends ConsumerState<TrackTilePopupMenu> {
             rowIndex: widget.rowIndex,
             trackTileIndex: 0,
             typeAtStart:
-                trackTileStackBlueprint.singlePartBlueprints.first.type,
+                trackTileStackBlueprint.singleTileBlueprints.first.type,
           ), // TODO: make TrackTilePicker with type selector
         ],
       ),
@@ -171,10 +171,10 @@ class _TrackTileTypeSelectorState
                                 type: type,
                                 eighthTurns: 0,
                                 color: trackTileStackBlueprint
-                                            .singlePartBlueprints.length >
+                                            .singleTileBlueprints.length >
                                         widget.trackTileIndex
                                     ? trackTileStackBlueprint
-                                        .singlePartBlueprints[
+                                        .singleTileBlueprints[
                                             widget.trackTileIndex]
                                         .color
                                     : TrackColor.none,
@@ -215,10 +215,10 @@ class _TrackTileTypeSelectorState
                             type: selectedType,
                             eighthTurns: i,
                             color: trackTileStackBlueprint
-                                        .singlePartBlueprints.length >
+                                        .singleTileBlueprints.length >
                                     widget.trackTileIndex
                                 ? trackTileStackBlueprint
-                                    .singlePartBlueprints[widget.trackTileIndex]
+                                    .singleTileBlueprints[widget.trackTileIndex]
                                     .color
                                 : TrackColor.none,
                           ),
