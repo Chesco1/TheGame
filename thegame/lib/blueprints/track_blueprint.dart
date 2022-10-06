@@ -96,6 +96,9 @@ class TrackTileStackBlueprint {
     return TrackTileStackBlueprint(
       columnIndex: columnIndex,
       rowIndex: rowIndex,
+      singleTileBlueprints: [
+        for (final blueprint in singleTileBlueprints) blueprint,
+      ],
       sideParts: newSideParts ?? sideParts,
     );
   }
@@ -105,8 +108,7 @@ class TrackTileStackBlueprint {
       columnIndex: columnIndex,
       rowIndex: rowIndex,
       singleTileBlueprints: [
-        for (int i = 0; i < singleTileBlueprints.length; i++)
-          singleTileBlueprints[i],
+        for (final blueprint in singleTileBlueprints) blueprint,
         const SingleTrackTileBlueprint(),
       ],
     );
