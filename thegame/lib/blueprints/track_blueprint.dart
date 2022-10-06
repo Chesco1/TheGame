@@ -107,7 +107,7 @@ class TrackTileStackBlueprint {
       singleTileBlueprints: [
         for (int i = 0; i < singleTileBlueprints.length; i++)
           singleTileBlueprints[i],
-        const SingleTrackTileBlueprint()
+        const SingleTrackTileBlueprint(),
       ],
     );
   }
@@ -219,11 +219,7 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
             columnIndex: 0,
             rowIndex: 0,
             singleTileBlueprints: [
-              SingleTrackTileBlueprint(
-                type: TrackTileType.straight,
-                eighthTurns: 3,
-                color: TrackColor.none,
-              ),
+              SingleTrackTileBlueprint(),
             ],
           ),
           const TrackTileStackBlueprint(
@@ -244,11 +240,7 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
             columnIndex: 1,
             rowIndex: 1,
             singleTileBlueprints: [
-              SingleTrackTileBlueprint(
-                type: TrackTileType.straight,
-                eighthTurns: 3,
-                color: TrackColor.green,
-              ),
+              SingleTrackTileBlueprint(),
             ],
           ),
         ]);
