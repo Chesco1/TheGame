@@ -147,6 +147,7 @@ class TrackTileStackBlueprint {
           else
             singleTileBlueprints[i],
       ],
+      sideParts: sideParts,
     );
   }
 }
