@@ -55,6 +55,10 @@ class _TrackTilePopupMenuState extends ConsumerState<TrackTilePopupMenu> {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// TODO: make tileIndexSelector here
+
+////////////////////////////////////////////////////////////////////////////////
+
 class _ColorPickRow extends ConsumerWidget {
   final int columnIndex;
   final int rowIndex;
@@ -205,24 +209,31 @@ class _TrackTileTypeSelectorState
                           newEighthTurns: i,
                         );
                       }),
-                      child: TrackTileStack(
-                        isLevelBuilder: true,
-                        size: (constraints.maxWidth -
-                                (tilesPerRow - 1) * spaceBetweenTiles) /
-                            tilesPerRow,
-                        singleTrackTileBlueprints: [
-                          SingleTrackTileBlueprint(
-                            type: selectedType,
-                            eighthTurns: i,
-                            color: trackTileStackBlueprint
-                                        .singleTileBlueprints.length >
-                                    widget.trackTileIndex
-                                ? trackTileStackBlueprint
-                                    .singleTileBlueprints[widget.trackTileIndex]
-                                    .color
-                                : TrackColor.none,
-                          ),
-                        ],
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          border:
+                              _isCurrentSelectedTile(trackTileStackBlueprint, i)
+                                  ? Border.all(
+                                      color: Colors.amber,
+                                      width: 2,
+                                    )
+                                  : null,
+                        ),
+                        child: TrackTileStack(
+                          isLevelBuilder: true,
+                          size: (constraints.maxWidth -
+                                  (tilesPerRow - 1) * spaceBetweenTiles) /
+                              tilesPerRow,
+                          singleTrackTileBlueprints: [
+                            SingleTrackTileBlueprint(
+                              type: selectedType,
+                              eighthTurns: i,
+                              color: trackTileStackBlueprint
+                                  .singleTileBlueprints[widget.trackTileIndex]
+                                  .color,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                 ],
@@ -232,5 +243,15 @@ class _TrackTileTypeSelectorState
         );
       },
     );
+  }
+
+  bool _isCurrentSelectedTile(
+      TrackTileStackBlueprint trackTileStackBlueprint, int eighthTurns) {
+    return trackTileStackBlueprint
+                .singleTileBlueprints[widget.trackTileIndex].type ==
+            selectedType &&
+        trackTileStackBlueprint
+                .singleTileBlueprints[widget.trackTileIndex].eighthTurns ==
+            eighthTurns;
   }
 }
