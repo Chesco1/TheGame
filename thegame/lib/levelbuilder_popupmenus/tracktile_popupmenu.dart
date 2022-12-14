@@ -32,21 +32,37 @@ class _TrackTilePopupMenuState extends ConsumerState<TrackTilePopupMenu> {
       ),
     );
 
+    int selectedSingleTileIndex =
+        trackTileStackBlueprint.singleTileBlueprints.length - 1;
+
     return SizedBox(
       width: MediaQuery.of(context).size.shortestSide * 0.9,
       child: Column(
         children: [
+          Row(
+            children: [],
+          ),
+          // _TileIndexSelector(
+          //   columnIndex: widget.columnIndex,
+          //   rowIndex: widget.rowIndex,
+          // ),
           _ColorPickRow(
             columnIndex: widget.columnIndex,
             rowIndex: widget.rowIndex,
+            trackTileIndex: selectedSingleTileIndex,
+            currentColor:
+                trackTileStackBlueprint.singleTileBlueprints.first.color,
           ),
           _TrackTileTypeSelector(
             columnIndex: widget.columnIndex,
             rowIndex: widget.rowIndex,
-            trackTileIndex: 0,
-            typeAtStart:
+            trackTileIndex: selectedSingleTileIndex,
+            currentType:
                 trackTileStackBlueprint.singleTileBlueprints.first.type,
-          ), // TODO: make TrackTilePicker with type selector
+            currentEighthTurns:
+                trackTileStackBlueprint.singleTileBlueprints.first.eighthTurns,
+            color: trackTileStackBlueprint.singleTileBlueprints.first.color,
+          ),
         ],
       ),
     );
@@ -55,15 +71,10 @@ class _TrackTilePopupMenuState extends ConsumerState<TrackTilePopupMenu> {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// TODO: make tileIndexSelector here
-
-////////////////////////////////////////////////////////////////////////////////
-
-class _ColorPickRow extends ConsumerWidget {
+class _TileIndexSelector extends ConsumerWidget {
   final int columnIndex;
   final int rowIndex;
-
-  const _ColorPickRow({
+  const _TileIndexSelector({
     Key? key,
     required this.columnIndex,
     required this.rowIndex,
@@ -71,7 +82,48 @@ class _ColorPickRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    return Container(
+      color: Colors.yellow,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            Container(
+              color: Colors.amber,
+            ),
+            Container(
+              color: Colors.yellow,
+            ),
+            Container(
+              color: Colors.pink,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+class _ColorPickRow extends ConsumerWidget {
+  final int columnIndex;
+  final int rowIndex;
+  final int trackTileIndex;
+  final TrackColor currentColor;
+
+  const _ColorPickRow({
+    Key? key,
+    required this.columnIndex,
+    required this.rowIndex,
+    required this.trackTileIndex,
+    required this.currentColor,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final trackNotifier = ref.watch(trackBlueprintProvider.notifier);
+    print(currentColor);
 
     return Row(
       children: [
@@ -92,7 +144,15 @@ class _ColorPickRow extends ConsumerWidget {
                   );
                 }),
                 child: Container(
-                  color: trackColor.paintColor,
+                  decoration: BoxDecoration(
+                    border: trackColor == currentColor
+                        ? Border.all(
+                            color: Colors.amber,
+                            width: 2,
+                          )
+                        : null,
+                    color: trackColor.paintColor,
+                  ),
                 ),
               ),
             ),
@@ -108,13 +168,18 @@ class _TrackTileTypeSelector extends ConsumerStatefulWidget {
   final int columnIndex;
   final int rowIndex;
   final int trackTileIndex;
-  final TrackTileType typeAtStart;
+  final TrackTileType currentType;
+  final int currentEighthTurns;
+  final TrackColor color;
+
   const _TrackTileTypeSelector({
     Key? key,
     required this.columnIndex,
     required this.rowIndex,
     required this.trackTileIndex,
-    this.typeAtStart = TrackTileType.none,
+    required this.currentType,
+    required this.currentEighthTurns,
+    required this.color,
   }) : super(key: key);
 
   @override
@@ -124,12 +189,9 @@ class _TrackTileTypeSelector extends ConsumerStatefulWidget {
 
 class _TrackTileTypeSelectorState
     extends ConsumerState<_TrackTileTypeSelector> {
-  final int tilesPerRow = 4;
-  final double spaceBetweenTiles = 5;
-
-  late TrackTileType selectedType = widget.typeAtStart == TrackTileType.none
+  late TrackTileType selectedType = widget.currentType == TrackTileType.none
       ? TrackTileType.straight
-      : widget.typeAtStart;
+      : widget.currentType;
 
   @override
   Widget build(BuildContext context) {
@@ -143,54 +205,55 @@ class _TrackTileTypeSelectorState
         )],
       ),
     );
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Container(
-          color: Colors.blueGrey[50],
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: Row(
-                  children: [
-                    for (final type in TrackTileType.values
-                        .where((type) => type != TrackTileType.none))
-                      Flexible(
-                        child: Padding(
-                          padding: const EdgeInsets.all(1.0),
-                          child: TextButton(
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              minimumSize: Size.zero,
-                            ),
-                            onPressed: (() {
-                              setState(() {
-                                selectedType = type;
-                              });
-                            }),
-                            child: Container(
-                              color:
-                                  type != selectedType ? Colors.black38 : null,
-                              child: SingleTrackTile(
-                                type: type,
-                                eighthTurns: 0,
-                                color: trackTileStackBlueprint
-                                            .singleTileBlueprints.length >
-                                        widget.trackTileIndex
-                                    ? trackTileStackBlueprint
-                                        .singleTileBlueprints[
-                                            widget.trackTileIndex]
-                                        .color
-                                    : TrackColor.none,
-                              ),
-                            ),
+
+    return Container(
+      color: Colors.blueGrey[50],
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Row(
+              children: [
+                for (final type in TrackTileType.values
+                    .where((type) => type != TrackTileType.none))
+                  Flexible(
+                    child: Padding(
+                      padding: const EdgeInsets.all(1.0),
+                      child: TextButton(
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size.zero,
+                        ),
+                        onPressed: (() {
+                          setState(() {
+                            selectedType = type;
+                          });
+                        }),
+                        child: Container(
+                          color: type != selectedType ? Colors.black38 : null,
+                          child: SingleTrackTile(
+                            type: type,
+                            eighthTurns: 0,
+                            color: trackTileStackBlueprint
+                                        .singleTileBlueprints.length >
+                                    widget.trackTileIndex
+                                ? trackTileStackBlueprint
+                                    .singleTileBlueprints[widget.trackTileIndex]
+                                    .color
+                                : TrackColor.none,
                           ),
                         ),
-                      )
-                  ],
-                ),
-              ),
-              Wrap(
+                      ),
+                    ),
+                  )
+              ],
+            ),
+          ),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              const int tilesPerRow = 4;
+              const double spaceBetweenTiles = 5;
+              return Wrap(
                 spacing: spaceBetweenTiles,
                 runSpacing: spaceBetweenTiles,
                 children: [
@@ -204,20 +267,20 @@ class _TrackTileTypeSelectorState
                         trackNotifier.updateTrackTileStack(
                           columnIndex: widget.columnIndex,
                           rowIndex: widget.rowIndex,
-                          trackTileIndex: 0,
+                          trackTileIndex: widget.trackTileIndex,
                           newType: selectedType,
                           newEighthTurns: i,
                         );
                       }),
                       child: DecoratedBox(
                         decoration: BoxDecoration(
-                          border:
-                              _isCurrentSelectedTile(trackTileStackBlueprint, i)
-                                  ? Border.all(
-                                      color: Colors.amber,
-                                      width: 2,
-                                    )
-                                  : null,
+                          border: selectedType == widget.currentType &&
+                                  widget.currentEighthTurns == i
+                              ? Border.all(
+                                  color: Colors.amber,
+                                  width: 2,
+                                )
+                              : null,
                         ),
                         child: TrackTileStack(
                           isLevelBuilder: true,
@@ -228,30 +291,99 @@ class _TrackTileTypeSelectorState
                             SingleTrackTileBlueprint(
                               type: selectedType,
                               eighthTurns: i,
-                              color: trackTileStackBlueprint
-                                  .singleTileBlueprints[widget.trackTileIndex]
-                                  .color,
+                              color: widget.color,
                             ),
                           ],
                         ),
                       ),
                     ),
                 ],
-              ),
-            ],
+              );
+            },
           ),
+        ],
+      ),
+    );
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+class _TrackTileSelector extends ConsumerWidget {
+  final int tilesPerRow = 4;
+  final double spaceBetweenTiles = 5;
+
+  final int columnIndex;
+  final int rowIndex;
+  final int trackTileIndex;
+  final TrackTileType currentType;
+  final TrackTileType selectedType;
+  final int currentEighthTurns;
+  final TrackColor color;
+
+  const _TrackTileSelector({
+    Key? key,
+    required this.columnIndex,
+    required this.rowIndex,
+    required this.trackTileIndex,
+    required this.currentType,
+    required this.selectedType,
+    required this.currentEighthTurns,
+    required this.color,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final trackNotifier = ref.watch(trackBlueprintProvider.notifier);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Wrap(
+          spacing: spaceBetweenTiles,
+          runSpacing: spaceBetweenTiles,
+          children: [
+            for (int i = 0; i < selectedType.tileAmount; i++)
+              TextButton(
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  minimumSize: Size.zero,
+                ),
+                onPressed: (() {
+                  trackNotifier.updateTrackTileStack(
+                    columnIndex: columnIndex,
+                    rowIndex: rowIndex,
+                    trackTileIndex: 0,
+                    newType: selectedType,
+                    newEighthTurns: i,
+                  );
+                }),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    border:
+                        selectedType == currentType && currentEighthTurns == i
+                            ? Border.all(
+                                color: Colors.amber,
+                                width: 2,
+                              )
+                            : null,
+                  ),
+                  child: TrackTileStack(
+                    isLevelBuilder: true,
+                    size: (constraints.maxWidth -
+                            (tilesPerRow - 1) * spaceBetweenTiles) /
+                        tilesPerRow,
+                    singleTrackTileBlueprints: [
+                      SingleTrackTileBlueprint(
+                        type: selectedType,
+                        eighthTurns: i,
+                        color: color,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
         );
       },
     );
-  }
-
-  bool _isCurrentSelectedTile(
-      TrackTileStackBlueprint trackTileStackBlueprint, int eighthTurns) {
-    return trackTileStackBlueprint
-                .singleTileBlueprints[widget.trackTileIndex].type ==
-            selectedType &&
-        trackTileStackBlueprint
-                .singleTileBlueprints[widget.trackTileIndex].eighthTurns ==
-            eighthTurns;
   }
 }
