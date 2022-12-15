@@ -304,6 +304,7 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
         else
           blueprint,
     ];
+
     for (final blueprint in state) {
       if (blueprint.columnIndex == columnIndex &&
           blueprint.rowIndex == rowIndex) {
@@ -519,6 +520,28 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
         ];
       }
     }
+  }
+
+  void addTrackTile(int columnIndex, int rowIndex) {
+    state = [
+      for (final blueprint in state)
+        if (blueprint.columnIndex == columnIndex &&
+            blueprint.rowIndex == rowIndex)
+          blueprint.copyWithAddedSingleTile()
+        else
+          blueprint,
+    ];
+  }
+
+  void removeTrackTile(int columnIndex, int rowIndex, indexTrackTileToRemove) {
+    state = [
+      for (final blueprint in state)
+        if (blueprint.columnIndex == columnIndex &&
+            blueprint.rowIndex == rowIndex)
+          blueprint.copyWithRemovedSingleTile(indexTrackTileToRemove)
+        else
+          blueprint,
+    ];
   }
 }
 
