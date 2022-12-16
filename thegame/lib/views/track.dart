@@ -8,7 +8,7 @@ import 'package:thegame/levelbuilder_popupmenus/tracktile_popupmenu.dart';
 
 class Track extends ConsumerWidget {
   static const int maxTrackTilesInRow = 15;
-  static const int trackWidth = 15; // should be a number between 0 and 100
+  static const int trackWidth = 17; // should be a number between 0 and 100
   static const double levelBuilderTileSpacing = 1;
 
   final bool isLevelBuilder;

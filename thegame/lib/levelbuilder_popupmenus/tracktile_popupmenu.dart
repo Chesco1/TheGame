@@ -19,6 +19,9 @@ class TrackTilePopupMenu extends ConsumerStatefulWidget {
 }
 
 class _TrackTilePopupMenuState extends ConsumerState<TrackTilePopupMenu> {
+  late TrackTileStackBlueprint trackTileStackBlueprint;
+  late int indexSelectedSingleTile =
+      trackTileStackBlueprint.singleTileBlueprints.length - 1;
   late final trackNotifier = ref.watch(trackBlueprintProvider.notifier);
 
   Widget _tileRemoveButton(double size) {
@@ -29,13 +32,36 @@ class _TrackTilePopupMenuState extends ConsumerState<TrackTilePopupMenu> {
         style: TextButton.styleFrom(
           padding: EdgeInsets.zero,
           minimumSize: Size.zero,
-          backgroundColor: Colors.grey,
+          backgroundColor: Colors.grey[200],
           foregroundColor: Colors.white,
         ),
         onPressed: () {
-          trackNotifier.addTrackTile(widget.columnIndex, widget.rowIndex);
+          if (trackTileStackBlueprint.singleTileBlueprints.length == 1) {
+            trackNotifier.updateTrackTileStack(
+              columnIndex: widget.columnIndex,
+              rowIndex: widget.rowIndex,
+              trackTileIndex: indexSelectedSingleTile,
+              newType: TrackTileType.none,
+              newEighthTurns: 0,
+              newColor: TrackColor.none,
+            );
+          } else {
+            if (indexSelectedSingleTile ==
+                trackTileStackBlueprint.singleTileBlueprints.length - 1) {
+              indexSelectedSingleTile--;
+            }
+            trackNotifier.removeTrackTile(
+              widget.columnIndex,
+              widget.rowIndex,
+              indexSelectedSingleTile,
+            );
+          }
         },
-        child: Icon(Icons.add),
+        child: Icon(
+          Icons.delete,
+          size: size,
+          color: Colors.deepOrange,
+        ),
       ),
     );
   }
@@ -52,6 +78,8 @@ class _TrackTilePopupMenuState extends ConsumerState<TrackTilePopupMenu> {
           foregroundColor: Colors.white,
         ),
         onPressed: () {
+          indexSelectedSingleTile =
+              trackTileStackBlueprint.singleTileBlueprints.length;
           trackNotifier.addTrackTile(widget.columnIndex, widget.rowIndex);
         },
         child: Icon(Icons.add),
@@ -61,7 +89,7 @@ class _TrackTilePopupMenuState extends ConsumerState<TrackTilePopupMenu> {
 
   @override
   Widget build(BuildContext context) {
-    final trackTileStackBlueprint = ref.watch(
+    trackTileStackBlueprint = ref.watch(
       trackBlueprintProvider.select(
         (blueprints) => blueprints[trackNotifier.getTrackTileIndex(
           widget.columnIndex,
@@ -69,9 +97,6 @@ class _TrackTilePopupMenuState extends ConsumerState<TrackTilePopupMenu> {
         )],
       ),
     );
-
-    int selectedSingleTileIndex =
-        trackTileStackBlueprint.singleTileBlueprints.length - 1;
 
     return SizedBox(
       width: MediaQuery.of(context).size.shortestSide * 0.9,
@@ -86,23 +111,52 @@ class _TrackTilePopupMenuState extends ConsumerState<TrackTilePopupMenu> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        for (final singleTileBlueprint
-                            in trackTileStackBlueprint
-                                .singleTileBlueprints) ...[
-                          TrackTileStack(
-                            isLevelBuilder: true,
-                            size: constraints.maxWidth * 0.2,
-                            singleTrackTileBlueprints: [
-                              SingleTrackTileBlueprint(
-                                type: singleTileBlueprint.type,
-                                eighthTurns: singleTileBlueprint.eighthTurns,
-                                color: singleTileBlueprint.color,
+                        for (int i = 0;
+                            i <
+                                trackTileStackBlueprint
+                                    .singleTileBlueprints.length;
+                            i++) ...[
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size.zero,
+                            ),
+                            onPressed: (() {
+                              setState(() {
+                                indexSelectedSingleTile = i;
+                              });
+                            }),
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                border: indexSelectedSingleTile == i
+                                    ? Border.all(
+                                        color: Colors.amber,
+                                        width: 2,
+                                      )
+                                    : null,
                               ),
-                            ],
+                              child: TrackTileStack(
+                                isLevelBuilder: true,
+                                size: constraints.maxWidth * 0.2,
+                                singleTrackTileBlueprints: [
+                                  SingleTrackTileBlueprint(
+                                    type: trackTileStackBlueprint
+                                        .singleTileBlueprints[i].type,
+                                    eighthTurns: trackTileStackBlueprint
+                                        .singleTileBlueprints[i].eighthTurns,
+                                    color: trackTileStackBlueprint
+                                        .singleTileBlueprints[i].color,
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                           SizedBox(width: 4),
                         ],
-                        _tileAddButton(constraints.maxWidth * 0.2),
+                        if (trackTileStackBlueprint
+                                .singleTileBlueprints.last.type !=
+                            TrackTileType.none)
+                          _tileAddButton(constraints.maxWidth * 0.2),
                       ],
                     ),
                   ),
@@ -115,20 +169,22 @@ class _TrackTilePopupMenuState extends ConsumerState<TrackTilePopupMenu> {
             _ColorPickRow(
               columnIndex: widget.columnIndex,
               rowIndex: widget.rowIndex,
-              trackTileIndex: selectedSingleTileIndex,
-              currentColor:
-                  trackTileStackBlueprint.singleTileBlueprints.first.color,
+              trackTileIndex: indexSelectedSingleTile,
+              currentColor: trackTileStackBlueprint
+                  .singleTileBlueprints[indexSelectedSingleTile].color,
             ),
             SizedBox(height: 8),
             _TrackTileSelector(
+              key: UniqueKey(),
               columnIndex: widget.columnIndex,
               rowIndex: widget.rowIndex,
-              trackTileIndex: selectedSingleTileIndex,
-              currentType:
-                  trackTileStackBlueprint.singleTileBlueprints.first.type,
+              trackTileIndex: indexSelectedSingleTile,
+              currentType: trackTileStackBlueprint
+                  .singleTileBlueprints[indexSelectedSingleTile].type,
               currentEighthTurns: trackTileStackBlueprint
-                  .singleTileBlueprints.first.eighthTurns,
-              color: trackTileStackBlueprint.singleTileBlueprints.first.color,
+                  .singleTileBlueprints[indexSelectedSingleTile].eighthTurns,
+              color: trackTileStackBlueprint
+                  .singleTileBlueprints[indexSelectedSingleTile].color,
             ),
           ],
         );
@@ -230,15 +286,6 @@ class _TrackTileSelectorState extends ConsumerState<_TrackTileSelector> {
   Widget build(BuildContext context) {
     final trackNotifier = ref.watch(trackBlueprintProvider.notifier);
 
-    final trackTileStackBlueprint = ref.watch(
-      trackBlueprintProvider.select(
-        (blueprints) => blueprints[trackNotifier.getTrackTileIndex(
-          widget.columnIndex,
-          widget.rowIndex,
-        )],
-      ),
-    );
-
     return Container(
       color: Colors.blueGrey[50],
       child: Column(
@@ -263,13 +310,7 @@ class _TrackTileSelectorState extends ConsumerState<_TrackTileSelector> {
                       child: SingleTrackTile(
                         type: type,
                         eighthTurns: 0,
-                        color: trackTileStackBlueprint
-                                    .singleTileBlueprints.length >
-                                widget.trackTileIndex
-                            ? trackTileStackBlueprint
-                                .singleTileBlueprints[widget.trackTileIndex]
-                                .color
-                            : TrackColor.none,
+                        color: widget.color,
                       ),
                     ),
                   ),

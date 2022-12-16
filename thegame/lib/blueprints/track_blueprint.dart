@@ -111,6 +111,7 @@ class TrackTileStackBlueprint {
         for (final blueprint in singleTileBlueprints) blueprint,
         const SingleTrackTileBlueprint(),
       ],
+      sideParts: sideParts,
     );
   }
 
@@ -124,6 +125,7 @@ class TrackTileStackBlueprint {
         for (int i = 0; i < singleTileBlueprints.length; i++)
           if (i != indexTileToRemove) singleTileBlueprints[i],
       ],
+      sideParts: sideParts,
     );
   }
 
@@ -542,6 +544,13 @@ class TrackNotifier extends StateNotifier<List<TrackTileStackBlueprint>> {
         else
           blueprint,
     ];
+
+    for (final blueprint in state) {
+      if (blueprint.columnIndex == columnIndex &&
+          blueprint.rowIndex == rowIndex) {
+        _updateSideParts(blueprint);
+      }
+    }
   }
 }
 
